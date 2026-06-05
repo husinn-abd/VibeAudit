@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.1-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.2-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -13,6 +13,7 @@ uploading source code by default.
 
 [Open the live dashboard](https://husinn-abd.github.io/VibeAudit/) |
 [Read the implementation phases](./docs/IMPLEMENTATION_PHASES.md) |
+[Review the VibeAudit standard](./docs/VIBEAUDIT_STANDARD.md) |
 [See the changelog](./CHANGELOG.md) |
 [Review the security policy](./SECURITY.md)
 
@@ -156,12 +157,16 @@ packages/
   iso/       Lightweight ISO/IEC 27001 mappings
   security/  Redaction, hashing, token helpers, audit hash primitives
 docs/
-  Architecture, deployment, implementation phases, repo patterns
+  Architecture, deployment, implementation phases, repo patterns, standards
 ```
 
 The default import payload contains normalized findings, scanner metadata,
 policy output, evidence hashes, and redacted snippets. Full source code is not
 part of the default import contract.
+
+API calls that read or write scoped data must include explicit organization
+context through `x-organization-id`; project routes also carry `projectId` in the
+path.
 
 ## Current Roadmap
 

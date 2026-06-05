@@ -1,6 +1,6 @@
 {
   "name": "vibeaudit",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "Local-first AI-aware repository security auditor for secrets, vulnerabilities, policy gates, and ISO evidence support.",
   "license": "MIT",

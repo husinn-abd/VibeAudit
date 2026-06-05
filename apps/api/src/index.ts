@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { createHtmlReport, scanReportSchema } from "./validation.js";
 import { MemoryStore } from "./store.js";
+import { missingOrganizationError, readOrganizationId } from "./scoping.js";
 
 const port = Number(process.env.VIBEAUDIT_API_PORT ?? 4317);
 const store = new MemoryStore();
@@ -12,14 +13,21 @@ app.get("/health", async () => ({
   time: new Date().toISOString()
 }));
 
-app.get("/v1/projects", async (request) => {
+app.get("/v1/projects", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
+
   return { projects: store.listProjects(organizationId) };
 });
 
 app.post("/v1/projects", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const body = request.body as { name?: string; repositoryUrl?: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
   if (!body?.name) {
     return reply.code(400).send({ error: "Project name is required" });
@@ -31,6 +39,9 @@ app.post("/v1/projects", async (request, reply) => {
 app.post("/v1/api-tokens", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const body = request.body as { name?: string; projectId?: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
   if (!body?.name) {
     return reply.code(400).send({ error: "Token name is required" });
@@ -44,6 +55,9 @@ app.post("/v1/projects/:projectId/scans/import", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const { projectId } = request.params as { projectId: string };
   const parsed = scanReportSchema.safeParse(request.body);
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
   if (!parsed.success) {
     return reply.code(400).send({ error: "Invalid scan report", details: parsed.error.flatten() });
@@ -60,6 +74,9 @@ app.post("/v1/projects/:projectId/scans/import", async (request, reply) => {
 app.get("/v1/projects/:projectId/scans", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const { projectId } = request.params as { projectId: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
   try {
     return { scans: store.listScans(organizationId, projectId).map((scan) => ({ ...scan, report: undefined })) };
@@ -71,6 +88,9 @@ app.get("/v1/projects/:projectId/scans", async (request, reply) => {
 app.get("/v1/projects/:projectId/findings", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const { projectId } = request.params as { projectId: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
   try {
     return { findings: store.listFindings(organizationId, projectId) };
@@ -89,6 +109,9 @@ app.post("/v1/projects/:projectId/risk-acceptances", async (request, reply) => {
     justification?: string;
     expiresAt?: string;
   };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
   if (!body.findingId || !body.owner || !body.reviewer || !body.justification || !body.expiresAt) {
     return reply.code(400).send({ error: "findingId, owner, reviewer, justification, and expiresAt are required" });
@@ -111,27 +134,29 @@ app.post("/v1/projects/:projectId/risk-acceptances", async (request, reply) => {
   }
 });
 
-app.get("/v1/scans/:scanId/reports/html", async (request, reply) => {
+app.get("/v1/projects/:projectId/scans/:scanId/reports/html", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
-  const { scanId } = request.params as { scanId: string };
+  const { projectId, scanId } = request.params as { projectId: string; scanId: string };
   const scan = store.scans.get(scanId);
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
 
-  if (!scan || scan.organizationId !== organizationId) {
-    return reply.code(404).send({ error: "Scan not found for organization" });
+  if (!scan || scan.organizationId !== organizationId || scan.projectId !== projectId) {
+    return reply.code(404).send({ error: "Scan not found for organization and project" });
   }
 
   reply.header("Content-Type", "text/html; charset=utf-8");
   return createHtmlReport(scan.report);
 });
 
-app.get("/v1/audit-log", async (request) => {
+app.get("/v1/audit-log", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
+
   return { auditLog: store.auditLog.filter((entry) => entry.organizationId === organizationId) };
 });
 
 await app.listen({ port, host: "0.0.0.0" });
-
-function readOrganizationId(headers: Record<string, string | string[] | undefined>): string {
-  const value = headers["x-organization-id"];
-  return Array.isArray(value) ? (value[0] ?? "org_default") : (value ?? "org_default");
-}

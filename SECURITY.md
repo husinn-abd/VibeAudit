@@ -21,6 +21,9 @@ exploit details until a fix or mitigation is available.
 - Project-scoped API access must include organization and project context.
 - AI features are optional and must default to metadata-only strict mode.
 
+The repository-level release and implementation rules are tracked in
+[docs/VIBEAUDIT_STANDARD.md](./docs/VIBEAUDIT_STANDARD.md).
+
 ## ISO/IEC 27001 Notice
 
 VibeAudit helps collect and organize technical evidence. It does not certify an

@@ -2,6 +2,32 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.2] - 2026-06-05
+
+### Added
+
+- Added `docs/VIBEAUDIT_STANDARD.md` as the public repo standard for product behavior, security baseline, release discipline, and verification.
+- Added API scoping tests for explicit `x-organization-id` handling.
+
+### Improved
+
+- Linked the VibeAudit standard from the README, contribution guide, and security policy.
+- Documented that scoped API calls require explicit organization context.
+- Bumped all workspace package versions and the runner version to `0.3.2`.
+
+### Fixed
+
+- Fixed API organization scoping so scoped routes no longer silently fall back to `org_default` when `x-organization-id` is missing.
+- Fixed the HTML report API route so scan reports are requested through organization and project context.
+
+### QA
+
+- Verified `corepack pnpm install`.
+- Verified `corepack pnpm typecheck`, `corepack pnpm test`, and `corepack pnpm build`.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` exits `0`, writes JSON/SARIF artifacts, and reports tool version `0.3.2`.
+- Verified raw `corepack pnpm --filter @vibeaudit/runner scan:mock` still exits `1` for CI policy-gate behavior.
+- Verified API smoke locally: `/health` returns `ok`, `/v1/projects` without `x-organization-id` returns `400`, `/v1/projects` with `x-organization-id: org_default` returns the VibeAudit Demo project, mock scan import returns `200`, project-scoped HTML report export returns `200`, and the old unscoped report route returns `404`.
+
 ## [0.3.1] - 2026-06-05
 
 ### Added
