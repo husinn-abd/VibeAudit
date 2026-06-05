@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.0-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.1-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -94,11 +94,20 @@ http://localhost:5173
 Run a deterministic mock scan:
 
 ```bash
+corepack pnpm --filter @vibeaudit/runner scan:mock:demo
+```
+
+The demo writes `artifacts/mock-report.json` and `artifacts/mock-report.sarif`,
+then exits `0` after confirming the expected policy failure.
+
+For CI policy-gate behavior, use the raw command:
+
+```bash
 corepack pnpm --filter @vibeaudit/runner scan:mock
 ```
 
-The mock scan intentionally returns exit code `1` because the sample policy
-fails on high and critical findings. That is the expected CI gate behavior.
+The raw mock scan intentionally returns exit code `1` because the sample policy
+fails on high and critical findings.
 
 ## Real Scanner Mode
 

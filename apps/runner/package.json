@@ -1,6 +1,6 @@
 {
   "name": "@vibeaudit/runner",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "bin": {
@@ -11,6 +11,7 @@
     "dev": "tsx src/index.ts",
     "lint": "tsc -p tsconfig.json --noEmit",
     "scan:mock": "tsx src/index.ts scan . --mock --output ../../artifacts/mock-report.json --sarif ../../artifacts/mock-report.sarif",
+    "scan:mock:demo": "node scripts/mock-scan-demo.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

@@ -2,6 +2,28 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.1] - 2026-06-05
+
+### Added
+
+- Added `scan:mock:demo` for a beginner-friendly quickstart scan that writes JSON and SARIF artifacts, summarizes the expected policy failure, and exits `0`.
+
+### Improved
+
+- Improved the README quickstart so the first local mock scan feels successful while preserving the raw `scan:mock` command for CI policy-gate exit code testing.
+- Bumped all workspace package versions and the runner version to `0.3.1`.
+
+### Fixed
+
+- Fixed quickstart confusion where the deterministic mock scan produced valid artifacts but pnpm displayed a recursive-run failure because the raw policy gate correctly exited `1`.
+
+### QA
+
+- Verified `corepack pnpm install`, `corepack pnpm test`, and `corepack pnpm build`.
+- Verified the local dashboard at `http://localhost:5173`.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` exits `0`, writes JSON/SARIF artifacts, and reports the expected failed policy.
+- Verified raw `corepack pnpm --filter @vibeaudit/runner scan:mock` still exits `1` for CI policy-gate behavior.
+
 ## [0.3.0] - 2026-06-05
 
 ### Added
