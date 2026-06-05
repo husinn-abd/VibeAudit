@@ -21,6 +21,7 @@ import {
   Terminal,
   UploadCloud
 } from "lucide-react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { findings, isoCoverage, policyEvaluation, project, scannerRuns } from "./data.js";
 import type { NormalizedFinding, Severity } from "@vibeaudit/core";
@@ -37,11 +38,17 @@ const navItems = [
 const severityOrder: Severity[] = ["critical", "high", "medium", "low", "info"];
 
 export function App() {
+  const [activeNav, setActiveNav] = useState("Findings");
+  const [selectedFindingId, setSelectedFindingId] = useState(findings[0]!.id);
+  const [exportStatus, setExportStatus] = useState("No report generated in this session");
   const severityCounts = severityOrder.map((severity) => ({
     severity,
     count: findings.filter((finding) => finding.severity === severity).length
   }));
-  const selectedFinding = findings[0]!;
+  const selectedFinding = useMemo(
+    () => findings.find((finding) => finding.id === selectedFindingId) ?? findings[0]!,
+    [selectedFindingId]
+  );
 
   return (
     <div className="app-shell">
@@ -57,8 +64,13 @@ export function App() {
         </div>
 
         <nav className="nav-list">
-          {navItems.map((item, index) => (
-            <button className={index === 2 ? "nav-item active" : "nav-item"} key={item.label}>
+          {navItems.map((item) => (
+            <button
+              aria-pressed={activeNav === item.label}
+              className={activeNav === item.label ? "nav-item active" : "nav-item"}
+              key={item.label}
+              onClick={() => setActiveNav(item.label)}
+            >
               <item.icon size={18} />
               <span>{item.label}</span>
             </button>
@@ -150,7 +162,12 @@ export function App() {
                   <span>ISO</span>
                 </div>
                 {findings.map((finding) => (
-                  <FindingRow finding={finding} key={finding.id} />
+                  <FindingRow
+                    finding={finding}
+                    isSelected={finding.id === selectedFinding.id}
+                    key={finding.id}
+                    onSelect={() => setSelectedFindingId(finding.id)}
+                  />
                 ))}
               </div>
             </Panel>
@@ -210,11 +227,12 @@ export function App() {
 
             <Panel title="Report exports" action="Generate">
               <div className="export-grid">
-                <button><FileDown size={18} /> HTML</button>
-                <button><FileDown size={18} /> PDF</button>
-                <button><FileJson size={18} /> JSON</button>
-                <button><Gauge size={18} /> SARIF</button>
+                <button onClick={() => setExportStatus("HTML report queued for the selected scan")}><FileDown size={18} /> HTML</button>
+                <button onClick={() => setExportStatus("PDF report queued for the selected scan")}><FileDown size={18} /> PDF</button>
+                <button onClick={() => setExportStatus("JSON machine report ready")}><FileJson size={18} /> JSON</button>
+                <button onClick={() => setExportStatus("SARIF export ready for code scanning")}><Gauge size={18} /> SARIF</button>
               </div>
+              <p className="export-status" aria-live="polite">{exportStatus}</p>
             </Panel>
 
             <div className="ai-note">
@@ -243,9 +261,22 @@ function Panel(props: { title: string; action: string; children: ReactNode }) {
   );
 }
 
-function FindingRow({ finding }: { finding: NormalizedFinding }) {
+function FindingRow({
+  finding,
+  isSelected,
+  onSelect
+}: {
+  finding: NormalizedFinding;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
   return (
-    <div className="table-row" role="row">
+    <button
+      aria-pressed={isSelected}
+      className={isSelected ? "table-row finding-row selected" : "table-row finding-row"}
+      onClick={onSelect}
+      role="row"
+    >
       <span>
         <SeverityBadge severity={finding.severity} />
       </span>
@@ -256,7 +287,7 @@ function FindingRow({ finding }: { finding: NormalizedFinding }) {
       <span>{finding.scanner}</span>
       <span className={`status status-${finding.status}`}>{finding.status.replace("_", " ")}</span>
       <span>{finding.isoControls.slice(0, 2).join(", ")}</span>
-    </div>
+    </button>
   );
 }
 

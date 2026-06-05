@@ -353,6 +353,26 @@ button {
   padding: 13px 18px;
 }
 
+.finding-row {
+  background: #ffffff;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.finding-row:hover,
+.finding-row.selected {
+  background: #f8fbfb;
+}
+
+.finding-row.selected {
+  box-shadow: inset 3px 0 0 #0f8f7f;
+}
+
 .table-row:last-child {
   border-bottom: 0;
 }
@@ -560,6 +580,20 @@ button {
   gap: 8px;
   justify-content: center;
   min-height: 42px;
+}
+
+.export-grid button:hover {
+  border-color: #0f8f7f;
+  color: #0a7568;
+}
+
+.export-status {
+  border-top: 1px solid #edf1f5;
+  color: #5f6d7c;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0 18px 18px;
 }
 
 .ai-note {

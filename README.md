@@ -16,6 +16,10 @@ uploading source code by default.
 
 ![VibeAudit dashboard](./docs/assets/vibeaudit-dashboard.png)
 
+Screenshot captured from the real `apps/web` dashboard running locally. The
+sample data is seeded demo data, but the interface, selection state, policy
+panel, evidence panel, and report controls are rendered by the application.
+
 ## Why VibeAudit
 
 Security scanners are useful, but their output is often scattered across CLI
