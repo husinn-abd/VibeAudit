@@ -1,75 +1,168 @@
 # VibeAudit
 
-VibeAudit is a local-first, AI-aware repository security auditor for secrets,
-vulnerabilities, policy gates, and ISO/IEC 27001 evidence support.
+[![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
+[![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
+[![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
-The first release focuses on one dependable loop:
+VibeAudit is a local-first security audit cockpit for modern repositories. It
+helps developers and auditors scan code, normalize findings, enforce policy
+gates, preserve evidence hashes, and prepare ISO/IEC 27001 audit support without
+uploading source code by default.
 
-1. Scan a local folder or git URL.
-2. Normalize scanner output into one finding model.
-3. Apply a policy gate.
-4. Import scans into a dashboard.
-5. Export developer, executive, SARIF, and evidence-oriented reports.
+[Open the live dashboard](https://husinn-abd.github.io/VibeAudit/) |
+[Read the implementation phases](./docs/IMPLEMENTATION_PHASES.md) |
+[Review the security policy](./SECURITY.md)
 
-## Why This Repository Is Structured This Way
+![VibeAudit dashboard](./docs/assets/vibeaudit-dashboard.png)
 
-Large open-source monorepos usually keep product surfaces in `apps/`, shared
-libraries in `packages/`, operational docs in `docs/`, and automation in
-`.github/`. VibeAudit follows that shape from day one so the CLI, API, web UI,
-and shared security logic can evolve without becoming one tangled application.
+## Why VibeAudit
 
-## Repository Layout
+Security scanners are useful, but their output is often scattered across CLI
+logs, SARIF uploads, CI failures, PDF reports, and spreadsheet-based risk
+registers. VibeAudit turns those signals into one reviewable workflow:
 
-```text
-apps/
-  api/       REST API, auth boundary, imports, reports
-  runner/    Local CLI scanner orchestrator
-  web/       Static dashboard and future self-hosted UI
-packages/
-  core/      Finding schema, normalization, SARIF, policy engine
-  iso/       Lightweight ISO/IEC 27001 mappings
-  security/  Redaction, hashing, token helpers, audit chain primitives
-docs/
-  Implementation phases, architecture, deployment notes
-```
+- Run Semgrep, Gitleaks, and Trivy from a local runner.
+- Normalize findings into one stable model.
+- Redact secrets before storage, reports, or AI.
+- Apply a policy gate that can fail CI.
+- Track evidence hashes, scanner metadata, and ISO control mappings.
+- Export developer, executive, JSON, SARIF, and evidence-oriented reports.
+
+## Who It Helps
+
+- Developers who want a fast local security check before pushing.
+- Security teams that need consistent evidence across projects.
+- Auditors who need traceable scanner metadata and control mapping.
+- Open-source maintainers who want a readable public security posture.
+- AI-heavy teams that want assistance without sending full source by default.
+
+## What Works Now
+
+| Area | Status |
+| --- | --- |
+| Public dashboard | Deployed on GitHub Pages |
+| Monorepo foundation | `apps/*`, `packages/*`, docs, CI, Pages workflow |
+| Runner CLI | Mock scans, JSON output, SARIF output, Docker scanner wrappers |
+| Core model | Severity mapping, fingerprints, policy evaluation, reports |
+| Secret safety | Redaction, evidence hashing, API token hashing helpers |
+| ISO-lite | A.8.8, A.8.25, A.8.28, A.8.29 support mappings |
+| API | MVP import, projects, findings, risk acceptance, HTML report endpoint |
+
+VibeAudit is pre-release. The dashboard currently uses demo data while the API
+and persisted storage are being connected.
 
 ## Quickstart
 
+Install dependencies, run tests, and build everything:
+
 ```bash
 corepack pnpm install
-corepack pnpm build
 corepack pnpm test
+corepack pnpm build
 ```
 
-Run the web dashboard locally:
+Run the dashboard locally:
 
 ```bash
 corepack pnpm --filter @vibeaudit/web dev
 ```
 
-Run a local scan with mock data:
+Open:
 
-```bash
-corepack pnpm --filter @vibeaudit/runner exec tsx src/index.ts scan . --mock --sarif artifacts/vibeaudit.sarif
+```text
+http://localhost:5173
 ```
 
-Real scanner execution uses Docker and the Semgrep, Gitleaks, and Trivy images.
+Run a deterministic mock scan:
 
-## V1 Boundaries
+```bash
+corepack pnpm --filter @vibeaudit/runner scan:mock
+```
 
-V1 is local-first and self-hosted. Source code is not uploaded by default. The
-API receives normalized findings, metadata, evidence hashes, and redacted
-evidence snippets. Full enterprise features such as SSO, GitHub Apps, GitLab
-Apps, multi-runner fleets, and full ISMS lifecycle management are post-V1.
+The mock scan intentionally returns exit code `1` because the sample policy
+fails on high and critical findings. That is the expected CI gate behavior.
 
-## Deployment
+## Real Scanner Mode
 
-The public dashboard deploys to GitHub Pages through `.github/workflows/pages.yml`.
-The self-hosted stack starts with Docker Compose and expands after the API
-storage layer stabilizes.
+Real scanning uses Docker images for the required V1 scanner set:
 
-## Security
+- Semgrep for SAST.
+- Gitleaks for committed secrets.
+- Trivy for dependency and filesystem vulnerabilities.
 
-Please read [SECURITY.md](./SECURITY.md) before using VibeAudit on sensitive
-repositories. VibeAudit is an audit support tool, not proof of certification
-or a substitute for an organization's ISMS.
+```bash
+corepack pnpm --filter @vibeaudit/runner exec tsx src/index.ts scan . \
+  --output artifacts/vibeaudit-report.json \
+  --sarif artifacts/vibeaudit-report.sarif
+```
+
+VibeAudit mounts local source read-only when running scanner containers.
+
+## Policy Example
+
+Create `securerepo.policy.yml`:
+
+```yaml
+schema_version: 1
+required_scanners:
+  - semgrep
+  - gitleaks
+  - trivy
+fail_on: high
+ignored_rules: []
+accepted_risk_max_days: 90
+ai_privacy_mode: disabled
+```
+
+Policy evaluation is deterministic and shared by the CLI, API imports, and
+dashboard views.
+
+## Architecture
+
+```text
+apps/
+  api/       REST API, project scope, imports, findings, report endpoints
+  runner/    Local CLI scanner orchestrator
+  web/       Dashboard deployed to GitHub Pages
+packages/
+  core/      Finding schema, normalization, SARIF, policy engine, reports
+  iso/       Lightweight ISO/IEC 27001 mappings
+  security/  Redaction, hashing, token helpers, audit hash primitives
+docs/
+  Architecture, deployment, implementation phases, repo patterns
+```
+
+The default import payload contains normalized findings, scanner metadata,
+policy output, evidence hashes, and redacted snippets. Full source code is not
+part of the default import contract.
+
+## Current Roadmap
+
+1. Connect the dashboard to the API instead of demo data.
+2. Persist imports through Prisma with SQLite for local use.
+3. Add Postgres-ready deployment path.
+4. Add HTML and PDF report generation from the same report model.
+5. Add strict local AI assistance for finding explanations.
+6. Add scanner benchmark fixtures for regression testing.
+
+Deferred enterprise features include SSO, GitHub App, GitLab App, multi-runner
+fleet, signed release pipeline, and full ISMS lifecycle workflows.
+
+## Security And Compliance Notes
+
+VibeAudit helps collect and organize technical evidence. It does not certify an
+organization, replace an ISMS, or prove ISO/IEC 27001 compliance by itself.
+
+Before using VibeAudit on sensitive repositories, read [SECURITY.md](./SECURITY.md).
+
+## Contributing
+
+Issues and pull requests are welcome. Keep changes scoped, update tests for
+scanner or policy behavior, and never add real secrets to fixtures.
+
+Start here:
+
+- [Contribution guide](./CONTRIBUTING.md)
+- [Architecture notes](./docs/ARCHITECTURE.md)
+- [Deployment notes](./docs/DEPLOYMENT.md)
