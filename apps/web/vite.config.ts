@@ -7,6 +7,7 @@ export default defineConfig({
   base: process.env.GITHUB_REPOSITORY === "husinn-abd/VibeAudit" ? "/VibeAudit/" : "/",
   resolve: {
     alias: {
+      "@vibeaudit/core/markdown": path.resolve(__dirname, "../../packages/core/src/markdown.ts"),
       "@vibeaudit/core": path.resolve(__dirname, "../../packages/core/src/index.ts"),
       "@vibeaudit/iso": path.resolve(__dirname, "../../packages/iso/src/index.ts"),
       "@vibeaudit/security": path.resolve(__dirname, "../../packages/security/src/index.ts")

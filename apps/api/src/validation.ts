@@ -1,4 +1,4 @@
-import { createHtmlReport as renderHtmlReport, type ScanReport } from "@vibeaudit/core";
+import { createHtmlReport as renderHtmlReport, createMarkdownReport as renderMarkdownReport, type ScanReport } from "@vibeaudit/core";
 import { z } from "zod";
 
 export const scanReportSchema = z.custom<ScanReport>((value) => {
@@ -22,4 +22,8 @@ export type ImportableScanReport = z.infer<typeof scanReportSchema>;
 
 export function createHtmlReport(report: ImportableScanReport): string {
   return renderHtmlReport(report);
+}
+
+export function createMarkdownReport(report: ImportableScanReport): string {
+  return renderMarkdownReport(report);
 }

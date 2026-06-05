@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import { createHtmlReport, scanReportSchema } from "./validation.js";
+import { createHtmlReport, createMarkdownReport, scanReportSchema } from "./validation.js";
 import { MemoryStore } from "./store.js";
 import { missingOrganizationError, readOrganizationId } from "./scoping.js";
 
@@ -148,6 +148,24 @@ app.get("/v1/projects/:projectId/scans/:scanId/reports/html", async (request, re
 
   reply.header("Content-Type", "text/html; charset=utf-8");
   return createHtmlReport(scan.report);
+});
+
+app.get("/v1/projects/:projectId/scans/:scanId/reports/markdown", async (request, reply) => {
+  const organizationId = readOrganizationId(request.headers);
+  const { projectId, scanId } = request.params as { projectId: string; scanId: string };
+  const scan = store.scans.get(scanId);
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
+
+  if (!scan || scan.organizationId !== organizationId || scan.projectId !== projectId) {
+    return reply.code(404).send({ error: "Scan not found for organization and project" });
+  }
+
+  return reply
+    .type("text/markdown; charset=utf-8")
+    .header("content-disposition", `attachment; filename="vibeaudit-${scan.id}.md"`)
+    .send(createMarkdownReport(scan.report));
 });
 
 app.get("/v1/audit-log", async (request, reply) => {

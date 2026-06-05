@@ -1,4 +1,5 @@
 export * from "./fingerprint.js";
+export * from "./markdown.js";
 export * from "./normalizers.js";
 export * from "./policy.js";
 export * from "./report.js";

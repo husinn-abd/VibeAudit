@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { createMarkdownReport } from "@vibeaudit/core/markdown";
+import type { ScanReport } from "@vibeaudit/core";
+import { findings as demoFindings, policyEvaluation as demoPolicyEvaluation, project, scannerRuns as demoScannerRuns } from "./data";
 
 type Severity = "critical" | "high" | "medium" | "low";
 type Scanner = "semgrep" | "gitleaks" | "trivy";
@@ -162,6 +165,33 @@ const isoRows = [
 
 const selectedDefaultId = "VA-2026-00102";
 
+const demoScanReport: ScanReport = {
+  schemaVersion: 1,
+  tool: {
+    name: "VibeAudit",
+    version: "0.3.3"
+  },
+  target: {
+    type: "local_path",
+    value: "~/repos/vibeaudit-demo",
+    branch: project.branch,
+    commit: project.commit
+  },
+  scannerRuns: demoScannerRuns,
+  findings: demoFindings,
+  policy: {
+    schema_version: 1,
+    required_scanners: ["semgrep", "gitleaks", "trivy"],
+    fail_on: "high",
+    ignored_rules: [],
+    accepted_risk_max_days: 90,
+    ai_privacy_mode: "disabled"
+  },
+  policyEvaluation: demoPolicyEvaluation,
+  generatedAt: project.generatedAt,
+  artifactHash: project.artifactHash
+};
+
 export function App() {
   const [activeNav, setActiveNav] = useState("Projects");
   const [selectedFindingId, setSelectedFindingId] = useState(selectedDefaultId);
@@ -194,6 +224,16 @@ export function App() {
   function selectFinding(finding: Finding) {
     setSelectedFindingId(finding.id);
     setDetailStatus(finding.status);
+  }
+
+  function handleReportExport(format: string) {
+    if (format === "MD") {
+      downloadMarkdownReport();
+      setExportStatus("Markdown .md report downloaded");
+      return;
+    }
+
+    setExportStatus(`${format} export ready`);
   }
 
   return (
@@ -508,9 +548,9 @@ export function App() {
               <h3>Report Export</h3>
               <p>Export this finding or scan results.</p>
               <div className="export-grid">
-                {["HTML", "PDF", "JSON", "SARIF"].map((format) => (
-                  <button key={format} onClick={() => setExportStatus(`${format} export ready`)}>
-                    {format === "JSON" ? <FileJson size={17} /> : format === "SARIF" ? <Gauge size={17} /> : <FileDown size={17} />}
+                {["HTML", "PDF", "JSON", "SARIF", "MD"].map((format) => (
+                  <button key={format} onClick={() => handleReportExport(format)}>
+                    {format === "JSON" ? <FileJson size={17} /> : format === "SARIF" ? <Gauge size={17} /> : format === "MD" ? <FileText size={17} /> : <FileDown size={17} />}
                     {format}
                   </button>
                 ))}
@@ -592,4 +632,18 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function downloadMarkdownReport() {
+  const markdown = createMarkdownReport(demoScanReport);
+  const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download = "vibeaudit-demo-report.md";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }

@@ -8,6 +8,7 @@ import { Command } from "commander";
 import YAML from "yaml";
 import {
   createScanReport,
+  createMarkdownReport,
   defaultPolicy,
   normalizeScannerOutput,
   parsePolicyConfig,
@@ -21,13 +22,14 @@ import { mapFindingToIsoControls } from "@vibeaudit/iso";
 import { createEvidenceHash } from "@vibeaudit/security";
 
 const execFileAsync = promisify(execFile);
-const VERSION = "0.3.2";
+const VERSION = "0.3.3";
 const MAX_REPO_BYTES = 512 * 1024 * 1024;
 const SCANNER_TIMEOUT_MS = 8 * 60 * 1000;
 
 type ScanOptions = {
   output?: string;
   sarif?: string;
+  markdown?: string;
   policy?: string;
   failOn?: string;
   offline?: boolean;
@@ -48,6 +50,7 @@ program
   .argument("<target>", "local folder, GitHub URL, GitLab URL, or git URL")
   .option("-o, --output <path>", "write normalized JSON report", "artifacts/vibeaudit-report.json")
   .option("--sarif <path>", "write SARIF report")
+  .option("--markdown <path>", "write Markdown report")
   .option("--policy <path>", "policy file path", "securerepo.policy.yml")
   .option("--fail-on <severity>", "override policy failure threshold")
   .option("--offline", "do not run network-dependent scanner modes")
@@ -61,6 +64,10 @@ program
 
       if (options.sarif) {
         await writeJson(options.sarif, toSarif(report));
+      }
+
+      if (options.markdown) {
+        await writeText(options.markdown, createMarkdownReport(report));
       }
 
       if (options.upload) {
@@ -333,10 +340,14 @@ function mockScannerResult(scanner: ScannerName, parsedOutput: unknown, timestam
 }
 
 async function writeJson(filePath: string, value: unknown): Promise<void> {
-  await writeFile(filePath, JSON.stringify(value, null, 2), "utf8").catch(async (error) => {
+  await writeText(filePath, JSON.stringify(value, null, 2));
+}
+
+async function writeText(filePath: string, value: string): Promise<void> {
+  await writeFile(filePath, value, "utf8").catch(async (error) => {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       await import("node:fs/promises").then(({ mkdir }) => mkdir(path.dirname(filePath), { recursive: true }));
-      await writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
+      await writeFile(filePath, value, "utf8");
       return;
     }
     throw error;

@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 const outputPath = resolve(process.cwd(), "../../artifacts/mock-report.json");
 const sarifPath = resolve(process.cwd(), "../../artifacts/mock-report.sarif");
+const markdownPath = resolve(process.cwd(), "../../artifacts/mock-report.md");
 const command = "tsx";
 const args = [
   "src/index.ts",
@@ -13,7 +14,9 @@ const args = [
   "--output",
   outputPath,
   "--sarif",
-  sarifPath
+  sarifPath,
+  "--markdown",
+  markdownPath
 ];
 
 const child = spawn(command, args, {
@@ -36,6 +39,7 @@ child.on("exit", async (code) => {
     console.log("VibeAudit mock scan demo completed.");
     console.log(`Report: ${outputPath}`);
     console.log(`SARIF: ${sarifPath}`);
+    console.log(`Markdown: ${markdownPath}`);
     console.log(`Findings: ${findingCount}`);
     console.log(`Policy passed: ${policyPassed}`);
 

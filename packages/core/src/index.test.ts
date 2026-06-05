@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createFingerprint, evaluatePolicy, normalizeScannerOutput, toSarif } from "./index.js";
+import { createFingerprint, createMarkdownReport, createScanReport, evaluatePolicy, normalizeScannerOutput, toSarif } from "./index.js";
 
 describe("core package", () => {
   it("creates stable fingerprints across slash styles", () => {
@@ -52,7 +52,46 @@ describe("core package", () => {
     const findings = normalizeScannerOutput("mock", {
       findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10 }]
     });
-    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.3.2" }, findings });
+    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.3.3" }, findings });
     expect(sarif.version).toBe("2.1.0");
+  });
+
+  it("exports Markdown with evidence hashes and notices", () => {
+    const findings = normalizeScannerOutput("mock", {
+      findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10, evidence: "unsafe" }]
+    });
+    const report = createScanReport({
+      version: "0.3.3",
+      target: { type: "local_path", value: "." },
+      scannerRuns: [
+        {
+          scanner: "mock",
+          version: "test",
+          command: ["mock"],
+          startedAt: "2026-01-01T00:00:00.000Z",
+          completedAt: "2026-01-01T00:00:00.000Z",
+          exitCode: 0,
+          status: "success",
+          rawOutputHash: "hash"
+        }
+      ],
+      findings,
+      policy: {
+        schema_version: 1,
+        required_scanners: ["mock"],
+        fail_on: "high",
+        ignored_rules: [],
+        accepted_risk_max_days: 90,
+        ai_privacy_mode: "disabled"
+      },
+      generatedAt: "2026-01-01T00:00:00.000Z"
+    });
+
+    const markdown = createMarkdownReport(report);
+
+    expect(markdown).toContain("# VibeAudit Report");
+    expect(markdown).toContain("| high | Mock finding | mock | danger | src/app.ts:10 |");
+    expect(markdown).toContain(findings[0]!.evidenceHash);
+    expect(markdown).toContain("Secret evidence is redacted before report generation.");
   });
 });

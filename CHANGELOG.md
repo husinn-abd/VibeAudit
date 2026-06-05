@@ -2,6 +2,33 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.3] - 2026-06-05
+
+### Added
+
+- Added Markdown report generation in `packages/core`.
+- Added runner `--markdown <path>` support and updated the mock quickstart to write `artifacts/mock-report.md`.
+- Added a project-scoped API Markdown report endpoint with downloadable `.md` response headers.
+- Added a dashboard `MD` export button that downloads a Markdown report from the rendered interface.
+
+### Improved
+
+- Updated README and implementation phases to include Markdown report export.
+- Bumped all workspace package versions and the runner version to `0.3.3`.
+
+### Fixed
+
+- No bug fixes in this release.
+
+### QA
+
+- Verified `corepack pnpm install`.
+- Verified `corepack pnpm typecheck`, `corepack pnpm test`, and `corepack pnpm build`.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` exits `0` and writes JSON, SARIF, and Markdown artifacts with tool version `0.3.3`.
+- Verified raw `corepack pnpm --filter @vibeaudit/runner scan:mock` still exits `1` for CI policy-gate behavior while writing `artifacts/mock-report.md`.
+- Verified local API Markdown export: mock scan import returns `200`, project-scoped Markdown endpoint returns `200`, `content-type` is `text/markdown`, `content-disposition` includes a `.md` attachment filename, and the body includes the report heading, evidence hashes, and redaction notice.
+- Verified local dashboard download with Browser plus Playwright fallback for download capture: the `MD` button is unique, downloads `vibeaudit-demo-report.md`, updates status to `Markdown .md report downloaded`, and emits no console errors.
+
 ## [0.3.2] - 2026-06-05
 
 ### Added

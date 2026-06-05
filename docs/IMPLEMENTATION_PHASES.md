@@ -17,7 +17,7 @@ Goal: prove local scanning without uploading source code.
 - Support mock scans for demos and scanner regression tests.
 - Run Semgrep, Gitleaks, and Trivy through Docker.
 - Normalize scanner outputs into one finding schema.
-- Generate JSON and SARIF.
+- Generate JSON, SARIF, and Markdown.
 - Apply `securerepo.policy.yml`.
 - Return stable exit codes for CI gates.
 
@@ -44,7 +44,7 @@ Goal: make scan review useful for developers and auditors.
 
 Goal: produce useful artifacts without overclaiming compliance.
 
-- HTML report.
+- HTML and Markdown reports.
 - PDF report generated from the same report model.
 - JSON and SARIF exports.
 - ISO/IEC 27001 evidence support for vulnerability management controls.

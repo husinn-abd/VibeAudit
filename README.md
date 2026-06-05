@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.2-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.3-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -34,7 +34,7 @@ registers. VibeAudit turns those signals into one reviewable workflow:
 - Redact secrets before storage, reports, or AI.
 - Apply a policy gate that can fail CI.
 - Track evidence hashes, scanner metadata, and ISO control mappings.
-- Export developer, executive, JSON, SARIF, and evidence-oriented reports.
+- Export developer, executive, Markdown, JSON, SARIF, and evidence-oriented reports.
 
 ## Who It Helps
 
@@ -51,11 +51,11 @@ registers. VibeAudit turns those signals into one reviewable workflow:
 | Public dashboard | Deployed on GitHub Pages |
 | Dashboard UI | Modern command-center interface with filters, selected evidence, scanner flow, ISO, and export state |
 | Monorepo foundation | `apps/*`, `packages/*`, docs, CI, Pages workflow |
-| Runner CLI | Mock scans, JSON output, SARIF output, Docker scanner wrappers |
+| Runner CLI | Mock scans, JSON output, SARIF output, Markdown output, Docker scanner wrappers |
 | Core model | Severity mapping, fingerprints, policy evaluation, reports |
 | Secret safety | Redaction, evidence hashing, API token hashing helpers |
 | ISO-lite | A.8.8, A.8.25, A.8.28, A.8.29 support mappings |
-| API | MVP import, projects, findings, risk acceptance, HTML report endpoint |
+| API | MVP import, projects, findings, risk acceptance, HTML and Markdown report endpoints |
 
 VibeAudit is pre-release. The dashboard currently uses demo data while the API
 and persisted storage are being connected.
@@ -67,7 +67,7 @@ and persisted storage are being connected.
 3. **Redact and hash** evidence before it is stored, shown, or exported.
 4. **Evaluate policy** with `securerepo.policy.yml`, including `fail_on` and required scanners.
 5. **Review in dashboard** with severity filters, scanner filters, selected finding evidence, scanner run metadata, and ISO-lite mappings.
-6. **Accept risk or export** HTML, PDF, JSON, and SARIF reports from the same scan data.
+6. **Accept risk or export** HTML, PDF, Markdown, JSON, and SARIF reports from the same scan data.
 7. **Fail CI when needed** using the runner exit code: `0` pass, `1` policy failed, `2` scanner/runtime error, `3` invalid input/config.
 
 ## Quickstart
@@ -98,7 +98,8 @@ Run a deterministic mock scan:
 corepack pnpm --filter @vibeaudit/runner scan:mock:demo
 ```
 
-The demo writes `artifacts/mock-report.json` and `artifacts/mock-report.sarif`,
+The demo writes `artifacts/mock-report.json`, `artifacts/mock-report.sarif`,
+and `artifacts/mock-report.md`,
 then exits `0` after confirming the expected policy failure.
 
 For CI policy-gate behavior, use the raw command:
@@ -121,7 +122,8 @@ Real scanning uses Docker images for the required V1 scanner set:
 ```bash
 corepack pnpm --filter @vibeaudit/runner exec tsx src/index.ts scan . \
   --output artifacts/vibeaudit-report.json \
-  --sarif artifacts/vibeaudit-report.sarif
+  --sarif artifacts/vibeaudit-report.sarif \
+  --markdown artifacts/vibeaudit-report.md
 ```
 
 VibeAudit mounts local source read-only when running scanner containers.
@@ -173,7 +175,7 @@ path.
 1. Connect the dashboard to the API instead of demo data.
 2. Persist imports through Prisma with SQLite for local use.
 3. Add Postgres-ready deployment path.
-4. Add HTML and PDF report generation from the same report model.
+4. Add PDF report generation from the same report model.
 5. Add strict local AI assistance for finding explanations.
 6. Add scanner benchmark fixtures for regression testing.
 

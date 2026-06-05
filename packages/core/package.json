@@ -1,6 +1,6 @@
 {
   "name": "@vibeaudit/core",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -9,6 +9,10 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./dist/index.js"
+    },
+    "./markdown": {
+      "types": "./src/markdown.ts",
+      "import": "./dist/markdown.js"
     }
   },
   "scripts": {
