@@ -83,12 +83,12 @@ if (-not (Test-Path $repo)) {
 }
 
 Set-Location $repo
+git pull --ff-only
 
 if (-not (Test-Path ".\package.json")) {
   throw "Wrong folder: package.json was not found. Run Set-Location to the VibeAudit repo first."
 }
 
-corepack enable
 corepack pnpm install
 corepack pnpm test
 corepack pnpm build

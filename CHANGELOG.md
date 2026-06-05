@@ -12,6 +12,8 @@ All notable changes to VibeAudit are documented here.
 ### Improved
 
 - Made the README quickstart explicit that pnpm commands must run from the VibeAudit repository folder.
+- Removed `corepack enable` from the quickstart because it can require administrator rights on Windows and is not needed for `corepack pnpm ...`.
+- Added `git pull --ff-only` so an existing quickstart clone updates before running install/test/build.
 - Bumped all workspace package versions and the runner version to `0.3.4`.
 
 ### Fixed
@@ -23,6 +25,7 @@ All notable changes to VibeAudit are documented here.
 - Verified `C:\Users\HusinAbdullah` does not contain `package.json`, matching the reported pnpm error cause.
 - Verified `corepack pnpm install`, `corepack pnpm typecheck`, `corepack pnpm test`, and `corepack pnpm build` from the repository folder.
 - Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` exits `0`, writes JSON/SARIF/Markdown artifacts, and reports tool version `0.3.4`.
+- Verified the public quickstart flow from `C:\Users\HusinAbdullah`: clone, enter `C:\Users\HusinAbdullah\VibeAudit`, install, test, build, and mock scan all complete successfully.
 
 ## [0.3.3] - 2026-06-05
 
