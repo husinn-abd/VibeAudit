@@ -9,9 +9,8 @@ The Vite base path is configured for `/VibeAudit/` when deployed from the
 
 ## Local Development
 
-```bash
-cp .env.example .env
-corepack pnpm install
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1
 corepack pnpm --filter @vibeaudit/web dev
 ```
 

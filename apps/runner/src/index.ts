@@ -26,7 +26,7 @@ import { createEvidenceHash } from "@vibeaudit/security";
 loadVibeAuditEnv({ appDir: fileURLToPath(new URL("..", import.meta.url)) });
 
 const execFileAsync = promisify(execFile);
-const VERSION = "0.3.5";
+const VERSION = "0.3.6";
 const MAX_REPO_BYTES = readPositiveIntegerEnv("VIBEAUDIT_MAX_REPO_BYTES", 512 * 1024 * 1024);
 const SCANNER_TIMEOUT_MS = readPositiveIntegerEnv("VIBEAUDIT_SCANNER_TIMEOUT_MS", 8 * 60 * 1000);
 const DEFAULT_OUTPUT_PATH = readOptionalEnv("VIBEAUDIT_RUNNER_OUTPUT") ?? "artifacts/vibeaudit-report.json";

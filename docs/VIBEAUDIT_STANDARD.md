@@ -45,19 +45,15 @@ documents a temporary exception.
 - GitHub releases must match the version in package metadata.
 - CI must run install, typecheck, tests, and build before a release is considered
   healthy.
-- Quickstart commands in `README.md` must be run locally before release notes
-  claim they work.
+- Quick access in `README.md` and `scripts/quickstart.ps1` must be run locally
+  before release notes claim they work.
 
 ## Verification Checklist
 
 Run these before publishing a release:
 
 ```bash
-corepack pnpm install
-corepack pnpm typecheck
-corepack pnpm test
-corepack pnpm build
-corepack pnpm --filter @vibeaudit/runner scan:mock:demo
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1
 ```
 
 For dashboard changes, also run the web app locally and capture a real

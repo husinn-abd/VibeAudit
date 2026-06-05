@@ -2,6 +2,31 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.6] - 2026-06-05
+
+### Added
+
+- Added `scripts/quickstart.ps1` as the clone-friendly setup and verification script for Windows PowerShell.
+- Added machine dependency preflight for Git, Node.js, Corepack, pnpm, repo root detection, `.env` creation, and optional Docker detection.
+- Added actionable failure guidance for dependency install, typecheck, test, build, and mock scan failures.
+
+### Improved
+
+- Reworked README quick access to use a clone/update model before running the built-in script.
+- Updated environment, deployment, and repository-standard docs to point at the script-based quickstart.
+- Bumped all workspace package versions and the runner version to `0.3.6`.
+
+### Fixed
+
+- Fixed quick access still depending on users manually running install/test/build commands from the correct folder.
+
+### QA
+
+- Verified `powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1 -CheckOnly` detects Git, Node.js 22, Corepack, pnpm `10.24.0`, `.env`, and reports Docker as an optional non-blocking warning.
+- Verified `powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1` runs install, typecheck, 14 unit tests, production build, and mock scan successfully.
+- Verified a fresh clone into `%TEMP%\vibeaudit-quickstart-clone-0.3.6` runs the same script successfully from a clean folder and creates `.env` from `.env.example`.
+- Verified the mock scan writes JSON, SARIF, and Markdown artifacts with tool version `0.3.6`.
+
 ## [0.3.5] - 2026-06-05
 
 ### Added

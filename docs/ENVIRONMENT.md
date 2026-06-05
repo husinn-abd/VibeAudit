@@ -8,16 +8,23 @@ Never commit real secrets.
 From the repository root:
 
 ```powershell
-Copy-Item .env.example .env
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1
 ```
 
-Then run:
+The script creates `.env` from `.env.example` when needed, installs project
+dependencies, runs typecheck, tests, build, and the mock scan.
+
+To only create/check environment and machine dependencies before installing
+packages:
 
 ```powershell
-corepack pnpm install
-corepack pnpm test
-corepack pnpm build
-corepack pnpm --filter @vibeaudit/runner scan:mock:demo
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1 -CheckOnly
+```
+
+Manual setup still works:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
 ## Files

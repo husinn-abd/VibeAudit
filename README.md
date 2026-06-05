@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.5-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.6-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -71,48 +71,65 @@ and persisted storage are being connected.
 6. **Accept risk or export** HTML, PDF, Markdown, JSON, and SARIF reports from the same scan data.
 7. **Fail CI when needed** using the runner exit code: `0` pass, `1` policy failed, `2` scanner/runtime error, `3` invalid input/config.
 
-## Quickstart From PowerShell
+## Quick Access From PowerShell
 
-Copy and paste this block from any PowerShell prompt, including
-`C:\Users\HusinAbdullah`:
+Copy and paste this block from any PowerShell prompt, including your Windows
+home folder. It clones the repo if needed, updates it if it already exists, and
+then runs the built-in quickstart script.
 
 ```powershell
 $repo = Join-Path $env:USERPROFILE "VibeAudit"
 
-if (-not (Test-Path $repo)) {
+git --version
+if ($LASTEXITCODE -ne 0) {
+  throw "Git is required. Install Git for Windows, reopen PowerShell, then run this block again."
+}
+
+if (Test-Path (Join-Path $repo ".git")) {
+  Set-Location $repo
+  git pull --ff-only
+  if ($LASTEXITCODE -ne 0) {
+    throw "git pull failed. Commit/stash local changes or reclone the repo, then run this block again."
+  }
+} else {
+  if (Test-Path $repo) {
+    throw "$repo already exists but is not a git repo. Move it or choose another folder."
+  }
   git clone https://github.com/husinn-abd/VibeAudit.git $repo
+  if ($LASTEXITCODE -ne 0) {
+    throw "git clone failed. Check internet access and GitHub access, then run this block again."
+  }
+  Set-Location $repo
 }
 
-Set-Location $repo
-git pull --ff-only
-
-if (-not (Test-Path ".\package.json")) {
-  throw "Wrong folder: package.json was not found. Run Set-Location to the VibeAudit repo first."
-}
-
-if (-not (Test-Path ".\.env")) {
-  Copy-Item .env.example .env
-}
-
-corepack pnpm install
-corepack pnpm test
-corepack pnpm build
-corepack pnpm --filter @vibeaudit/runner scan:mock:demo
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1
 ```
 
-The final command writes:
+The script checks Git, Node.js, Corepack, pnpm, optional Docker availability,
+and the repo root before it installs dependencies. It then creates `.env` from
+`.env.example` when needed, runs install, typecheck, tests, production build,
+and a mock scan. If any dependency install or validation step fails, it prints
+the exact fix to try next.
+
+The mock scan writes:
 
 - `artifacts/mock-report.json`
 - `artifacts/mock-report.sarif`
 - `artifacts/mock-report.md`
 
-If the repository is already cloned somewhere else, run this first instead:
+If the repository is already cloned somewhere else, enter that folder and run
+the same script:
 
 ```powershell
 Set-Location "D:\0Documents\Documents\SecureRepo-Auditor"
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1
 ```
 
-Then run the install/test/build commands from that repo folder.
+To only check machine dependencies before installing packages:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1 -CheckOnly
+```
 
 ## Environment Setup
 
@@ -147,16 +164,20 @@ Test-Path .\package.json
 ```
 
 It must print `True` before running `corepack pnpm install`, `corepack pnpm test`,
-or `corepack pnpm build`.
+or `corepack pnpm build`. The recommended fix is to use the clone-based quick
+access block above, because it always enters the repo before running checks.
 
 ## Manual Quickstart
 
 Install dependencies, run tests, and build everything:
 
 ```bash
+cp .env.example .env
 corepack pnpm install
+corepack pnpm typecheck
 corepack pnpm test
 corepack pnpm build
+corepack pnpm --filter @vibeaudit/runner scan:mock:demo
 ```
 
 Run the dashboard locally:
