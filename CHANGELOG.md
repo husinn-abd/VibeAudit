@@ -21,6 +21,7 @@ All notable changes to VibeAudit are documented here.
 
 - Verified `powershell -ExecutionPolicy Bypass -Command '$Global:PSNativeCommandUseErrorActionPreference = $true; & ".\scripts\quickstart.ps1" -CheckOnly'` still completes successfully.
 - Verified `powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1` runs install, typecheck, 14 unit tests, production build, and mock scan successfully.
+- Verified the pushed GitHub quick access flow from `C:\Users\HusinAbdullah\VibeAudit`: `git pull --ff-only`, native-command-preference check, install, typecheck, 14 tests, build, and mock scan all completed successfully.
 - Verified the mock scan writes JSON, SARIF, and Markdown artifacts with tool version `0.3.7`.
 
 ## [0.3.6] - 2026-06-05
