@@ -1,0 +1,26 @@
+{
+  "name": "@vibeaudit/runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "vibeaudit": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "scan:mock": "tsx src/index.ts scan . --mock --output ../../artifacts/mock-report.json --sarif ../../artifacts/mock-report.sarif",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@vibeaudit/core": "workspace:*",
+    "@vibeaudit/iso": "workspace:*",
+    "@vibeaudit/security": "workspace:*",
+    "commander": "^12.1.0",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

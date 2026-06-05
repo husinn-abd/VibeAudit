@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  name      String?
+  createdAt DateTime     @default(now())
+  memberships Membership[]
+}
+
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+  projects    Project[]
+  apiTokens   ApiToken[]
+  auditLogs   AuditLog[]
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId])
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  repositoryUrl  String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  repositories   Repository[]
+  scans          Scan[]
+  apiTokens      ApiToken[]
+  acceptances    RiskAcceptance[]
+
+  @@index([organizationId])
+}
+
+model Repository {
+  id        String  @id @default(cuid())
+  projectId String
+  url       String?
+  localHint String?
+  project   Project @relation(fields: [projectId], references: [id])
+}
+
+model Scan {
+  id               String       @id @default(cuid())
+  organizationId   String
+  projectId        String
+  targetType       String
+  targetValue      String
+  commitSha        String?
+  branch           String?
+  policyPassed     Boolean
+  artifactHash     String
+  generatedAt      DateTime
+  importedAt       DateTime     @default(now())
+  project          Project      @relation(fields: [projectId], references: [id])
+  scannerRuns      ScannerRun[]
+  findings         Finding[]
+  reportArtifacts  ReportArtifact[]
+
+  @@index([organizationId, projectId])
+}
+
+model ScannerRun {
+  id            String   @id @default(cuid())
+  scanId        String
+  scanner       String
+  version       String
+  commandJson   String
+  status        String
+  exitCode      Int
+  rawOutputHash String
+  error         String?
+  startedAt     DateTime
+  completedAt   DateTime
+  scan          Scan     @relation(fields: [scanId], references: [id])
+}
+
+model Finding {
+  id             String   @id
+  scanId         String
+  fingerprint    String
+  scanner        String
+  ruleId         String
+  title          String
+  description    String
+  severity       String
+  confidence     String
+  filePath       String?
+  startLine      Int?
+  endLine        Int?
+  evidence       String?
+  evidenceHash   String
+  masked         Boolean
+  cweJson        String
+  owaspJson      String
+  isoControlsJson String
+  status         String
+  firstSeenAt    DateTime
+  lastSeenAt     DateTime
+  scan           Scan     @relation(fields: [scanId], references: [id])
+
+  @@index([fingerprint])
+  @@index([scanId, severity])
+}
+
+model Policy {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String?
+  name           String
+  bodyJson       String
+  createdAt      DateTime @default(now())
+}
+
+model PolicyEvaluation {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  scanId         String
+  passed         Boolean
+  threshold      String
+  resultJson     String
+  evaluatedAt    DateTime
+}
+
+model ReportArtifact {
+  id          String   @id @default(cuid())
+  scanId      String
+  kind        String
+  path        String
+  sha256      String
+  createdAt   DateTime @default(now())
+  scan        Scan     @relation(fields: [scanId], references: [id])
+}
+
+model ApiToken {
+  id             String       @id @default(cuid())
+  organizationId String
+  projectId      String?
+  name           String
+  hashedToken    String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  project        Project?     @relation(fields: [projectId], references: [id])
+}
+
+model RiskAcceptance {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  findingId      String
+  owner          String
+  reviewer       String
+  justification  String
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  project        Project  @relation(fields: [projectId], references: [id])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  actor          String
+  action         String
+  target         String
+  hash           String?
+  previousHash   String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}

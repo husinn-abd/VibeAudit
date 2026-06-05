@@ -1,0 +1,22 @@
+services:
+  api:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: sh -c "corepack enable && pnpm install && pnpm --filter @vibeaudit/api dev"
+    ports:
+      - "4317:4317"
+    volumes:
+      - .:/workspace
+    environment:
+      VIBEAUDIT_API_PORT: "4317"
+
+  web:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: sh -c "corepack enable && pnpm install && pnpm --filter @vibeaudit/web dev --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/workspace
+    environment:
+      VITE_API_BASE_URL: http://localhost:4317
