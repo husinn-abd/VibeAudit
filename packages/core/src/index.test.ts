@@ -52,7 +52,7 @@ describe("core package", () => {
     const findings = normalizeScannerOutput("mock", {
       findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10 }]
     });
-    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.1.0" }, findings });
+    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.2.0" }, findings });
     expect(sarif.version).toBe("2.1.0");
   });
 });

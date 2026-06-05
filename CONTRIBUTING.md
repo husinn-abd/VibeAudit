@@ -20,3 +20,4 @@ Keep changes scoped. If a change touches the scanner model, update tests in
 - Secret values are never written to logs, reports, or fixtures.
 - Scanner output normalization keeps stable fingerprints.
 - Public docs are updated when behavior changes.
+- User-visible updates bump the release version and update `CHANGELOG.md`.

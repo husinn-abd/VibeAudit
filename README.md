@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
+[![Version](https://img.shields.io/badge/version-0.2.0-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -12,6 +13,7 @@ uploading source code by default.
 
 [Open the live dashboard](https://husinn-abd.github.io/VibeAudit/) |
 [Read the implementation phases](./docs/IMPLEMENTATION_PHASES.md) |
+[See the changelog](./CHANGELOG.md) |
 [Review the security policy](./SECURITY.md)
 
 ![VibeAudit dashboard](./docs/assets/vibeaudit-dashboard.png)
@@ -46,6 +48,7 @@ registers. VibeAudit turns those signals into one reviewable workflow:
 | Area | Status |
 | --- | --- |
 | Public dashboard | Deployed on GitHub Pages |
+| Dashboard UI | Modern command-center interface with filters, selected evidence, scanner flow, ISO, and export state |
 | Monorepo foundation | `apps/*`, `packages/*`, docs, CI, Pages workflow |
 | Runner CLI | Mock scans, JSON output, SARIF output, Docker scanner wrappers |
 | Core model | Severity mapping, fingerprints, policy evaluation, reports |
@@ -55,6 +58,16 @@ registers. VibeAudit turns those signals into one reviewable workflow:
 
 VibeAudit is pre-release. The dashboard currently uses demo data while the API
 and persisted storage are being connected.
+
+## Product Flow
+
+1. **Scan locally** with the runner against a folder or git URL.
+2. **Normalize** Semgrep, Gitleaks, and Trivy output into one finding model.
+3. **Redact and hash** evidence before it is stored, shown, or exported.
+4. **Evaluate policy** with `securerepo.policy.yml`, including `fail_on` and required scanners.
+5. **Review in dashboard** with severity filters, scanner filters, selected finding evidence, scanner run metadata, and ISO-lite mappings.
+6. **Accept risk or export** HTML, PDF, JSON, and SARIF reports from the same scan data.
+7. **Fail CI when needed** using the runner exit code: `0` pass, `1` policy failed, `2` scanner/runtime error, `3` invalid input/config.
 
 ## Quickstart
 
