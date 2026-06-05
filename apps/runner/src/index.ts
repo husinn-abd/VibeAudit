@@ -22,7 +22,7 @@ import { mapFindingToIsoControls } from "@vibeaudit/iso";
 import { createEvidenceHash } from "@vibeaudit/security";
 
 const execFileAsync = promisify(execFile);
-const VERSION = "0.3.3";
+const VERSION = "0.3.4";
 const MAX_REPO_BYTES = 512 * 1024 * 1024;
 const SCANNER_TIMEOUT_MS = 8 * 60 * 1000;
 

@@ -2,6 +2,28 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.4] - 2026-06-05
+
+### Added
+
+- Added a copy-paste PowerShell quickstart that works from any folder by cloning the repo, entering it, checking for `package.json`, and then running install/test/build/mock scan.
+- Added troubleshooting guidance for `ERR_PNPM_NO_PKG_MANIFEST` and `ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND`.
+
+### Improved
+
+- Made the README quickstart explicit that pnpm commands must run from the VibeAudit repository folder.
+- Bumped all workspace package versions and the runner version to `0.3.4`.
+
+### Fixed
+
+- Fixed quickstart instructions that could fail when copied from `C:\Users\HusinAbdullah` or any folder outside the repo.
+
+### QA
+
+- Verified `C:\Users\HusinAbdullah` does not contain `package.json`, matching the reported pnpm error cause.
+- Verified `corepack pnpm install`, `corepack pnpm typecheck`, `corepack pnpm test`, and `corepack pnpm build` from the repository folder.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` exits `0`, writes JSON/SARIF/Markdown artifacts, and reports tool version `0.3.4`.
+
 ## [0.3.3] - 2026-06-05
 
 ### Added

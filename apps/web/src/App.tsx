@@ -169,7 +169,7 @@ const demoScanReport: ScanReport = {
   schemaVersion: 1,
   tool: {
     name: "VibeAudit",
-    version: "0.3.3"
+    version: "0.3.4"
   },
   target: {
     type: "local_path",

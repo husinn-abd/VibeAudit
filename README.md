@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.3-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.4-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -70,7 +70,64 @@ and persisted storage are being connected.
 6. **Accept risk or export** HTML, PDF, Markdown, JSON, and SARIF reports from the same scan data.
 7. **Fail CI when needed** using the runner exit code: `0` pass, `1` policy failed, `2` scanner/runtime error, `3` invalid input/config.
 
-## Quickstart
+## Quickstart From PowerShell
+
+Copy and paste this block from any PowerShell prompt, including
+`C:\Users\HusinAbdullah`:
+
+```powershell
+$repo = Join-Path $env:USERPROFILE "VibeAudit"
+
+if (-not (Test-Path $repo)) {
+  git clone https://github.com/husinn-abd/VibeAudit.git $repo
+}
+
+Set-Location $repo
+
+if (-not (Test-Path ".\package.json")) {
+  throw "Wrong folder: package.json was not found. Run Set-Location to the VibeAudit repo first."
+}
+
+corepack enable
+corepack pnpm install
+corepack pnpm test
+corepack pnpm build
+corepack pnpm --filter @vibeaudit/runner scan:mock:demo
+```
+
+The final command writes:
+
+- `artifacts/mock-report.json`
+- `artifacts/mock-report.sarif`
+- `artifacts/mock-report.md`
+
+If the repository is already cloned somewhere else, run this first instead:
+
+```powershell
+Set-Location "D:\0Documents\Documents\SecureRepo-Auditor"
+```
+
+Then run the install/test/build commands from that repo folder.
+
+### Why The Old Command Failed
+
+This error:
+
+```text
+ERR_PNPM_NO_PKG_MANIFEST No package.json found in C:\Users\HusinAbdullah
+```
+
+means pnpm was run from your Windows home folder, not from the VibeAudit repo.
+Confirm you are in the correct folder with:
+
+```powershell
+Test-Path .\package.json
+```
+
+It must print `True` before running `corepack pnpm install`, `corepack pnpm test`,
+or `corepack pnpm build`.
+
+## Manual Quickstart
 
 Install dependencies, run tests, and build everything:
 
