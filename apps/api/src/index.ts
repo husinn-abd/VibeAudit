@@ -1,11 +1,26 @@
+import { fileURLToPath } from "node:url";
+import { loadVibeAuditEnv } from "@vibeaudit/core/env";
 import Fastify from "fastify";
 import { createHtmlReport, createMarkdownReport, scanReportSchema } from "./validation.js";
 import { MemoryStore } from "./store.js";
 import { missingOrganizationError, readOrganizationId } from "./scoping.js";
 
-const port = Number(process.env.VIBEAUDIT_API_PORT ?? 4317);
-const store = new MemoryStore();
-const app = Fastify({ logger: true });
+loadVibeAuditEnv({ appDir: fileURLToPath(new URL("..", import.meta.url)) });
+
+const apiConfig = {
+  host: process.env.VIBEAUDIT_API_HOST ?? "0.0.0.0",
+  port: readPositiveIntegerEnv("VIBEAUDIT_API_PORT", 4317),
+  logger: readBooleanEnv("VIBEAUDIT_API_LOGGER", true),
+  maxImportBytes: readPositiveIntegerEnv("VIBEAUDIT_API_MAX_IMPORT_BYTES", 10 * 1024 * 1024)
+};
+const store = new MemoryStore({
+  defaultOrganizationId: process.env.VIBEAUDIT_DEFAULT_ORGANIZATION_ID,
+  defaultOrganizationName: process.env.VIBEAUDIT_DEFAULT_ORGANIZATION_NAME,
+  defaultProjectId: process.env.VIBEAUDIT_DEFAULT_PROJECT_ID,
+  defaultProjectName: process.env.VIBEAUDIT_DEFAULT_PROJECT_NAME,
+  defaultRepositoryUrl: process.env.VIBEAUDIT_DEFAULT_REPOSITORY_URL
+});
+const app = Fastify({ logger: apiConfig.logger, bodyLimit: apiConfig.maxImportBytes });
 
 app.get("/health", async () => ({
   status: "ok",
@@ -177,4 +192,15 @@ app.get("/v1/audit-log", async (request, reply) => {
   return { auditLog: store.auditLog.filter((entry) => entry.organizationId === organizationId) };
 });
 
-await app.listen({ port, host: "0.0.0.0" });
+await app.listen({ port: apiConfig.port, host: apiConfig.host });
+
+function readPositiveIntegerEnv(key: string, fallback: number): number {
+  const value = Number(process.env[key]);
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+function readBooleanEnv(key: string, fallback: boolean): boolean {
+  const value = process.env[key]?.trim().toLowerCase();
+  if (!value) return fallback;
+  return ["1", "true", "yes", "on"].includes(value);
+}

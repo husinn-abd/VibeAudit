@@ -1,5 +1,9 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createFingerprint, createMarkdownReport, createScanReport, evaluatePolicy, normalizeScannerOutput, toSarif } from "./index.js";
+import { loadVibeAuditEnv } from "./env.js";
 
 describe("core package", () => {
   it("creates stable fingerprints across slash styles", () => {
@@ -52,7 +56,7 @@ describe("core package", () => {
     const findings = normalizeScannerOutput("mock", {
       findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10 }]
     });
-    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.3.4" }, findings });
+    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.3.5" }, findings });
     expect(sarif.version).toBe("2.1.0");
   });
 
@@ -61,7 +65,7 @@ describe("core package", () => {
       findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10, evidence: "unsafe" }]
     });
     const report = createScanReport({
-      version: "0.3.4",
+      version: "0.3.5",
       target: { type: "local_path", value: "." },
       scannerRuns: [
         {
@@ -93,5 +97,40 @@ describe("core package", () => {
     expect(markdown).toContain("| high | Mock finding | mock | danger | src/app.ts:10 |");
     expect(markdown).toContain(findings[0]!.evidenceHash);
     expect(markdown).toContain("Secret evidence is redacted before report generation.");
+  });
+
+  it("loads root and app env files without overriding existing process env", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "vibeaudit-env-"));
+    const appDir = path.join(workspace, "apps", "api");
+    const keys = ["VIBEAUDIT_API_PORT", "VIBEAUDIT_API_HOST", "VIBEAUDIT_DEFAULT_PROJECT_ID"] as const;
+    const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+
+    try {
+      for (const key of keys) {
+        delete process.env[key];
+      }
+      process.env.VIBEAUDIT_API_HOST = "os-host";
+
+      await mkdir(appDir, { recursive: true });
+      await writeFile(path.join(workspace, "pnpm-workspace.yaml"), "packages:\n  - apps/*\n", "utf8");
+      await writeFile(path.join(workspace, ".env"), "VIBEAUDIT_API_PORT=4317\nVIBEAUDIT_DEFAULT_PROJECT_ID=root_project\n", "utf8");
+      await writeFile(path.join(appDir, ".env"), "VIBEAUDIT_API_PORT=5317\nVIBEAUDIT_API_HOST=app-host\n", "utf8");
+
+      const result = loadVibeAuditEnv({ cwd: appDir, appDir });
+
+      expect(result.files).toHaveLength(2);
+      expect(process.env.VIBEAUDIT_API_PORT).toBe("5317");
+      expect(process.env.VIBEAUDIT_DEFAULT_PROJECT_ID).toBe("root_project");
+      expect(process.env.VIBEAUDIT_API_HOST).toBe("os-host");
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 });

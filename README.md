@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.4-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.5-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -13,6 +13,7 @@ uploading source code by default.
 
 [Open the live dashboard](https://husinn-abd.github.io/VibeAudit/) |
 [Read the implementation phases](./docs/IMPLEMENTATION_PHASES.md) |
+[Configure environment](./docs/ENVIRONMENT.md) |
 [Review the VibeAudit standard](./docs/VIBEAUDIT_STANDARD.md) |
 [See the changelog](./CHANGELOG.md) |
 [Review the security policy](./SECURITY.md)
@@ -89,6 +90,10 @@ if (-not (Test-Path ".\package.json")) {
   throw "Wrong folder: package.json was not found. Run Set-Location to the VibeAudit repo first."
 }
 
+if (-not (Test-Path ".\.env")) {
+  Copy-Item .env.example .env
+}
+
 corepack pnpm install
 corepack pnpm test
 corepack pnpm build
@@ -108,6 +113,23 @@ Set-Location "D:\0Documents\Documents\SecureRepo-Auditor"
 ```
 
 Then run the install/test/build commands from that repo folder.
+
+## Environment Setup
+
+The committed `.env.example` files are safe templates. Real `.env` files stay
+ignored by git.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Optional app-specific override templates are available here:
+
+- `apps/api/.env.example`
+- `apps/runner/.env.example`
+- `apps/web/.env.example`
+
+Full details: [docs/ENVIRONMENT.md](./docs/ENVIRONMENT.md).
 
 ### Why The Old Command Failed
 

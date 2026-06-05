@@ -56,6 +56,14 @@ export type AuditLogEntry = {
   createdAt: string;
 };
 
+export type MemoryStoreOptions = {
+  defaultOrganizationId?: string;
+  defaultOrganizationName?: string;
+  defaultProjectId?: string;
+  defaultProjectName?: string;
+  defaultRepositoryUrl?: string;
+};
+
 const now = () => new Date().toISOString();
 
 export class MemoryStore {
@@ -66,17 +74,17 @@ export class MemoryStore {
   readonly riskAcceptances = new Map<string, RiskAcceptance>();
   readonly auditLog: AuditLogEntry[] = [];
 
-  constructor() {
+  constructor(options: MemoryStoreOptions = {}) {
     const organization: Organization = {
-      id: "org_default",
-      name: "Default Organization",
+      id: options.defaultOrganizationId ?? "org_default",
+      name: options.defaultOrganizationName ?? "Default Organization",
       createdAt: now()
     };
     const project: Project = {
-      id: "proj_vibeaudit_demo",
+      id: options.defaultProjectId ?? "proj_vibeaudit_demo",
       organizationId: organization.id,
-      name: "VibeAudit Demo",
-      repositoryUrl: "https://github.com/husinn-abd/VibeAudit",
+      name: options.defaultProjectName ?? "VibeAudit Demo",
+      repositoryUrl: options.defaultRepositoryUrl ?? "https://github.com/husinn-abd/VibeAudit",
       createdAt: now()
     };
     this.organizations.set(organization.id, organization);

@@ -3,9 +3,11 @@ import { execFile } from "node:child_process";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { Command } from "commander";
 import YAML from "yaml";
+import { loadVibeAuditEnv } from "@vibeaudit/core/env";
 import {
   createScanReport,
   createMarkdownReport,
@@ -21,10 +23,16 @@ import {
 import { mapFindingToIsoControls } from "@vibeaudit/iso";
 import { createEvidenceHash } from "@vibeaudit/security";
 
+loadVibeAuditEnv({ appDir: fileURLToPath(new URL("..", import.meta.url)) });
+
 const execFileAsync = promisify(execFile);
-const VERSION = "0.3.4";
-const MAX_REPO_BYTES = 512 * 1024 * 1024;
-const SCANNER_TIMEOUT_MS = 8 * 60 * 1000;
+const VERSION = "0.3.5";
+const MAX_REPO_BYTES = readPositiveIntegerEnv("VIBEAUDIT_MAX_REPO_BYTES", 512 * 1024 * 1024);
+const SCANNER_TIMEOUT_MS = readPositiveIntegerEnv("VIBEAUDIT_SCANNER_TIMEOUT_MS", 8 * 60 * 1000);
+const DEFAULT_OUTPUT_PATH = readOptionalEnv("VIBEAUDIT_RUNNER_OUTPUT") ?? "artifacts/vibeaudit-report.json";
+const DEFAULT_SARIF_PATH = readOptionalEnv("VIBEAUDIT_RUNNER_SARIF");
+const DEFAULT_MARKDOWN_PATH = readOptionalEnv("VIBEAUDIT_RUNNER_MARKDOWN");
+const DEFAULT_UPLOAD_URL = readOptionalEnv("VIBEAUDIT_UPLOAD_URL");
 
 type ScanOptions = {
   output?: string;
@@ -48,15 +56,15 @@ program
 program
   .command("scan")
   .argument("<target>", "local folder, GitHub URL, GitLab URL, or git URL")
-  .option("-o, --output <path>", "write normalized JSON report", "artifacts/vibeaudit-report.json")
-  .option("--sarif <path>", "write SARIF report")
-  .option("--markdown <path>", "write Markdown report")
+  .option("-o, --output <path>", "write normalized JSON report", DEFAULT_OUTPUT_PATH)
+  .option("--sarif <path>", "write SARIF report", DEFAULT_SARIF_PATH)
+  .option("--markdown <path>", "write Markdown report", DEFAULT_MARKDOWN_PATH)
   .option("--policy <path>", "policy file path", "securerepo.policy.yml")
   .option("--fail-on <severity>", "override policy failure threshold")
   .option("--offline", "do not run network-dependent scanner modes")
   .option("--no-ai", "disable AI assistance")
   .option("--mock", "emit deterministic demo findings without Docker scanners")
-  .option("--upload <url>", "upload scan report to an API import endpoint")
+  .option("--upload <url>", "upload scan report to an API import endpoint", DEFAULT_UPLOAD_URL)
   .action(async (target: string, options: ScanOptions) => {
     try {
       const report = await scanTarget(target, options);
@@ -387,6 +395,16 @@ function parseJsonOutput(stdout: string): unknown {
 
 function isGitUrl(value: string): boolean {
   return /^(https?:\/\/|git@|ssh:\/\/).+\.git$/.test(value) || /^https?:\/\/(github|gitlab)\.com\//.test(value);
+}
+
+function readPositiveIntegerEnv(key: string, fallback: number): number {
+  const value = Number(process.env[key]);
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+function readOptionalEnv(key: string): string | undefined {
+  const value = process.env[key]?.trim();
+  return value ? value : undefined;
 }
 
 type ScannerResult = {

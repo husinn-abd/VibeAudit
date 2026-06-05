@@ -2,6 +2,38 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.5] - 2026-06-05
+
+### Added
+
+- Added complete root `.env.example` coverage for API, web, runner, database, seeded demo scope, Docker Compose, upload placeholder, and local AI placeholder settings.
+- Added app-specific templates: `apps/api/.env.example`, `apps/runner/.env.example`, and `apps/web/.env.example`.
+- Added `docs/ENVIRONMENT.md` with exact copy/setup rules, loading order, and variable ownership.
+- Added a shared `@vibeaudit/core/env` loader so API and runner load root `.env` plus app-specific overrides.
+- Added web config loading for root `.env` and `apps/web/.env`.
+
+### Improved
+
+- API config now reads host, port, logger, max import size, and seeded demo org/project values from environment.
+- Runner config now reads scanner timeout, max repo size, and default JSON/SARIF/Markdown output paths from environment.
+- Docker Compose now uses `.env` interpolation with safe defaults.
+- README and deployment docs now include explicit `.env` setup.
+- Bumped all workspace package versions and the runner version to `0.3.5`.
+
+### Fixed
+
+- Fixed the previous environment template being too small to represent the actual API, web, runner, and Compose configuration surface.
+
+### QA
+
+- Verified `corepack pnpm install`.
+- Verified `corepack pnpm typecheck`, `corepack pnpm test`, and `corepack pnpm build`.
+- Verified the env loader unit test covers root `.env`, app-specific `.env`, app override behavior, and operating-system env precedence.
+- Verified `.env.example` can be copied to ignored local `.env`.
+- Verified runner env defaults by setting JSON, SARIF, and Markdown output paths through `VIBEAUDIT_RUNNER_OUTPUT`, `VIBEAUDIT_RUNNER_SARIF`, and `VIBEAUDIT_RUNNER_MARKDOWN`, then running a mock scan that wrote all three artifacts.
+- Verified API env defaults by starting the built API on `127.0.0.1:4349` with logger disabled and an env-seeded project name, then checking `/health` and `/v1/projects`.
+- Verified web env injection in the local dashboard at `http://127.0.0.1:5176/`: `.app-shell` exposed `http://localhost:4349`, `org_env`, `proj_env`, and `demoMode=true`; the page title was `VibeAudit Dashboard`; the interface was not blank; dashboard search accepted `SQL`; and browser console errors/warnings were empty.
+
 ## [0.3.4] - 2026-06-05
 
 ### Added

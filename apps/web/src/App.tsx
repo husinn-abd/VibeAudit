@@ -37,6 +37,7 @@ import type { ReactNode } from "react";
 import { createMarkdownReport } from "@vibeaudit/core/markdown";
 import type { ScanReport } from "@vibeaudit/core";
 import { findings as demoFindings, policyEvaluation as demoPolicyEvaluation, project, scannerRuns as demoScannerRuns } from "./data";
+import { webConfig } from "./config";
 
 type Severity = "critical" | "high" | "medium" | "low";
 type Scanner = "semgrep" | "gitleaks" | "trivy";
@@ -169,7 +170,7 @@ const demoScanReport: ScanReport = {
   schemaVersion: 1,
   tool: {
     name: "VibeAudit",
-    version: "0.3.4"
+    version: "0.3.5"
   },
   target: {
     type: "local_path",
@@ -237,7 +238,13 @@ export function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      data-api-base-url={webConfig.apiBaseUrl}
+      data-demo-mode={String(webConfig.demoMode)}
+      data-organization-id={webConfig.organizationId}
+      data-project-id={webConfig.projectId}
+    >
       <aside className="sidebar" aria-label="Primary navigation">
         <div className="brand">
           <Shield className="brand-logo" size={36} strokeWidth={2.3} />

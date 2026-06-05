@@ -10,9 +10,13 @@ The Vite base path is configured for `/VibeAudit/` when deployed from the
 ## Local Development
 
 ```bash
+cp .env.example .env
 corepack pnpm install
 corepack pnpm --filter @vibeaudit/web dev
 ```
+
+See [ENVIRONMENT.md](./ENVIRONMENT.md) for all supported API, web, runner, and
+Docker Compose variables.
 
 ## Self-hosted Preview
 
@@ -20,6 +24,7 @@ The initial Compose file starts the API and web containers. Scanner execution
 is still local-first through the CLI until the runner fleet is designed.
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
