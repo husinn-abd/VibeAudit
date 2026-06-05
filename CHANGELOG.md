@@ -2,6 +2,27 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.7] - 2026-06-05
+
+### Added
+
+- No new features in this release.
+
+### Improved
+
+- Bumped all workspace package versions and the runner version to `0.3.7`.
+
+### Fixed
+
+- Fixed the README quick access block so it checks for `git` with `Get-Command` before running `git --version`, giving a clearer failure when Git is missing.
+- Fixed the PowerShell quickstart script so it disables native-command terminating behavior when that PowerShell 7 preference is globally enabled, preserving the script's own actionable failure messages.
+
+### QA
+
+- Verified `powershell -ExecutionPolicy Bypass -Command '$Global:PSNativeCommandUseErrorActionPreference = $true; & ".\scripts\quickstart.ps1" -CheckOnly'` still completes successfully.
+- Verified `powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1` runs install, typecheck, 14 unit tests, production build, and mock scan successfully.
+- Verified the mock scan writes JSON, SARIF, and Markdown artifacts with tool version `0.3.7`.
+
 ## [0.3.6] - 2026-06-05
 
 ### Added

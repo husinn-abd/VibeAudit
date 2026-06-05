@@ -7,6 +7,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue) {
+  $Global:PSNativeCommandUseErrorActionPreference = $false
+}
 $PnpmVersion = "10.24.0"
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 
