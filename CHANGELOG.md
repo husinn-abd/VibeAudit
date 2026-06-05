@@ -2,6 +2,33 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.0] - 2026-06-05
+
+### Added
+
+- Added a screenshot-matched dashboard layout based on the requested VibeAudit command-center reference.
+- Added the right-side finding inspector with SQL Injection details, metadata fields, evidence code block, ISO evidence table, and report export controls.
+- Added table pagination chrome, rule/status filters, scanner badges, tags, privacy header state, and local repository header treatment.
+
+### Improved
+
+- Reworked the public dashboard visual system to match the supplied reference: dark left sidebar, white project header, policy summary strip, scanner cards, dense findings table, and right detail panel.
+- Improved demo data presentation to show realistic aggregate counts, scanner counts, 180-finding table context, and selected SQL Injection evidence.
+- Bumped all workspace package versions and the runner version to `0.3.0`.
+
+### Fixed
+
+- Fixed the dashboard design mismatch with the requested reference by replacing the previous command-center layout.
+
+### QA
+
+- Verified local dashboard rendering at `http://127.0.0.1:5173/`.
+- Verified screenshot-matched default state: `SQL Injection`, `Findings (180)`, policy block, scanner cards, summary counts, evidence highlight, ISO table, and report export controls.
+- Verified dashboard interaction: search `lodash`, selected finding detail update, and JSON export state.
+- Verified responsive layout at `390x844` with no page-level horizontal overflow.
+- Verified `corepack pnpm typecheck`, `corepack pnpm test`, and `corepack pnpm build`.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock` returns exit code `1` for the expected policy failure and reports tool version `0.3.0`.
+
 ## [0.2.0] - 2026-06-05
 
 ### Added
