@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.7-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.8-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -133,6 +133,12 @@ To only check machine dependencies before installing packages:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1 -CheckOnly
+```
+
+To save a machine-readable setup report:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1 -CheckOnly -DoctorReport artifacts\quickstart-doctor.json
 ```
 
 ## Environment Setup

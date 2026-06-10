@@ -3,7 +3,8 @@ param(
   [switch]$CheckOnly,
   [switch]$SkipInstall,
   [switch]$SkipBuild,
-  [switch]$SkipMockScan
+  [switch]$SkipMockScan,
+  [string]$DoctorReport
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,6 +13,8 @@ if (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -Er
 }
 $PnpmVersion = "10.24.0"
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$DoctorStartedAt = (Get-Date).ToString("o")
+$DoctorEvents = [System.Collections.Generic.List[object]]::new()
 
 Set-Location $RepoRoot
 
@@ -31,13 +34,66 @@ function Write-WarnLine {
   Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
+function Add-DoctorEvent {
+  param(
+    [string]$Name,
+    [string]$Status,
+    [string]$Message,
+    [hashtable]$Metadata = @{}
+  )
+
+  $DoctorEvents.Add([pscustomobject]@{
+      name      = $Name
+      status    = $Status
+      message   = $Message
+      metadata  = $Metadata
+      timestamp = (Get-Date).ToString("o")
+    }) | Out-Null
+}
+
+function Write-DoctorReport {
+  param([string]$Status)
+
+  if (-not $DoctorReport) {
+    return
+  }
+
+  $reportPath = if ([System.IO.Path]::IsPathRooted($DoctorReport)) {
+    $DoctorReport
+  } else {
+    Join-Path $RepoRoot $DoctorReport
+  }
+  $reportDirectory = Split-Path -Parent $reportPath
+  if ($reportDirectory) {
+    New-Item -ItemType Directory -Force -Path $reportDirectory | Out-Null
+  }
+
+  [pscustomobject]@{
+    schemaVersion = 1
+    tool          = "vibeaudit-quickstart"
+    status        = $Status
+    repoRoot      = "$RepoRoot"
+    startedAt     = $DoctorStartedAt
+    finishedAt    = (Get-Date).ToString("o")
+    checkOnly     = [bool]$CheckOnly
+    skipInstall   = [bool]$SkipInstall
+    skipBuild     = [bool]$SkipBuild
+    skipMockScan  = [bool]$SkipMockScan
+    events        = $DoctorEvents
+  } | ConvertTo-Json -Depth 8 | Set-Content -Path $reportPath -Encoding UTF8
+
+  Write-Host "Doctor report: $reportPath"
+}
+
 function Stop-WithSolution {
   param(
     [string]$Message,
     [string[]]$Solutions,
-    [int]$ExitCode = 1
+    [int]$ExitCode = 1,
+    [hashtable]$Metadata = @{}
   )
 
+  Add-DoctorEvent "failure" "failed" $Message $Metadata
   Write-Host ""
   Write-Host "[FAILED] $Message" -ForegroundColor Red
   Write-Host ""
@@ -45,6 +101,7 @@ function Stop-WithSolution {
   foreach ($solution in $Solutions) {
     Write-Host "  - $solution"
   }
+  Write-DoctorReport "failed"
   exit $ExitCode
 }
 
@@ -59,6 +116,7 @@ function Require-Command {
     Stop-WithSolution "$Name was not found." $Solutions 127
   }
 
+  Add-DoctorEvent "dependency:$Name" "passed" "$Name found" @{ path = "$($command.Source)" }
   Write-Ok "$Name found at $($command.Source)"
 }
 
@@ -76,9 +134,14 @@ function Invoke-Step {
   $exitCode = $LASTEXITCODE
 
   if ($exitCode -ne 0) {
-    Stop-WithSolution "$Name failed with exit code $exitCode." $Solutions $exitCode
+    Stop-WithSolution "$Name failed with exit code $exitCode." $Solutions $exitCode @{
+      command  = $Command
+      arguments = $Arguments
+      exitCode = $exitCode
+    }
   }
 
+  Add-DoctorEvent "step:$Name" "passed" "$Name completed" @{ command = $Command; arguments = $Arguments }
   Write-Ok "$Name completed"
 }
 
@@ -144,9 +207,11 @@ if ($null -eq $nodeMajor) {
 }
 
 if ($nodeMajor -lt 20) {
+  Add-DoctorEvent "dependency:node-version" "warning" "Node.js major version is below 20" @{ major = $nodeMajor }
   Write-WarnLine "Node.js major version is $nodeMajor. VibeAudit is tested with Node.js 20+."
   Write-Host "Recommended fix: install Node.js 20 LTS or newer from https://nodejs.org/"
 } else {
+  Add-DoctorEvent "dependency:node-version" "passed" "Node.js major version is supported" @{ major = $nodeMajor }
   Write-Ok "Node.js major version $nodeMajor is supported"
 }
 
@@ -172,12 +237,15 @@ if ($LASTEXITCODE -ne 0 -or -not $pnpmVersionOutput) {
     "If it still fails, reinstall Node.js 20 LTS or newer."
   )
 }
+Add-DoctorEvent "dependency:pnpm" "passed" "pnpm is ready" @{ version = "$pnpmVersionOutput" }
 Write-Ok "pnpm $pnpmVersionOutput is ready"
 
 $docker = Get-Command "docker" -ErrorAction SilentlyContinue
 if ($docker) {
+  Add-DoctorEvent "dependency:docker" "passed" "Docker found" @{ path = "$($docker.Source)" }
   Write-Ok "Docker found at $($docker.Source)"
 } else {
+  Add-DoctorEvent "dependency:docker" "warning" "Docker was not found; real scanner mode needs Docker Desktop"
   Write-WarnLine "Docker was not found. Mock quickstart still works; real Semgrep/Gitleaks/Trivy scanning needs Docker Desktop."
 }
 
@@ -191,14 +259,17 @@ if (-not (Test-Path ".\.env")) {
   }
 
   Copy-Item ".\.env.example" ".\.env"
+  Add-DoctorEvent "environment:.env" "passed" "Created .env from .env.example"
   Write-Ok "Created .env from .env.example"
 } else {
+  Add-DoctorEvent "environment:.env" "passed" ".env already exists"
   Write-Ok ".env already exists"
 }
 
 if ($CheckOnly) {
   Write-Section "Check only complete"
   Write-Host "Dependencies look ready. Rerun without -CheckOnly to install and validate the repo."
+  Write-DoctorReport "passed"
   exit 0
 }
 
@@ -248,6 +319,7 @@ if (-not $SkipMockScan) {
 
 Write-Section "Quickstart complete"
 Write-Ok "VibeAudit installed, checked, built, and mock-scanned successfully."
+Write-DoctorReport "passed"
 Write-Host ""
 Write-Host "Open the dashboard locally:"
 Write-Host "  corepack pnpm --filter @vibeaudit/web dev"

@@ -2,6 +2,28 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.8] - 2026-06-10
+
+### Added
+
+- Added `-DoctorReport <path>` to `scripts/quickstart.ps1` so preflight and validation results can be saved as JSON.
+
+### Improved
+
+- Documented the quickstart doctor report command in the README.
+- Bumped all workspace package versions and the runner version to `0.3.8`.
+
+### Fixed
+
+- No bug fixes in this release.
+
+### QA
+
+- Verified `corepack pnpm typecheck`.
+- Verified `corepack pnpm test`: 5 files and 16 tests passed, including quickstart doctor report contract coverage.
+- Verified `corepack pnpm build`.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` writes JSON, SARIF, and Markdown artifacts with tool version `0.3.8`.
+
 ## [0.3.7] - 2026-06-05
 
 ### Added
