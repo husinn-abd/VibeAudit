@@ -1,8 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { loadVibeAuditEnv } from "@vibeaudit/core/env";
 import Fastify from "fastify";
-import { createHtmlReport, createMarkdownReport, scanReportSchema } from "./validation.js";
-import { MemoryStore } from "./store.js";
+import { createHtmlReport, createMarkdownReport, createSarifReport, scanReportSchema } from "./validation.js";
+import { MemoryStore, type StoredScan } from "./store.js";
 import { missingOrganizationError, readOrganizationId } from "./scoping.js";
 
 loadVibeAuditEnv({ appDir: fileURLToPath(new URL("..", import.meta.url)) });
@@ -152,12 +152,12 @@ app.post("/v1/projects/:projectId/risk-acceptances", async (request, reply) => {
 app.get("/v1/projects/:projectId/scans/:scanId/reports/html", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const { projectId, scanId } = request.params as { projectId: string; scanId: string };
-  const scan = store.scans.get(scanId);
   if (!organizationId) {
     return reply.code(400).send(missingOrganizationError);
   }
 
-  if (!scan || scan.organizationId !== organizationId || scan.projectId !== projectId) {
+  const scan = readScopedScan({ organizationId, projectId, scanId });
+  if (!scan) {
     return reply.code(404).send({ error: "Scan not found for organization and project" });
   }
 
@@ -168,12 +168,12 @@ app.get("/v1/projects/:projectId/scans/:scanId/reports/html", async (request, re
 app.get("/v1/projects/:projectId/scans/:scanId/reports/markdown", async (request, reply) => {
   const organizationId = readOrganizationId(request.headers);
   const { projectId, scanId } = request.params as { projectId: string; scanId: string };
-  const scan = store.scans.get(scanId);
   if (!organizationId) {
     return reply.code(400).send(missingOrganizationError);
   }
 
-  if (!scan || scan.organizationId !== organizationId || scan.projectId !== projectId) {
+  const scan = readScopedScan({ organizationId, projectId, scanId });
+  if (!scan) {
     return reply.code(404).send({ error: "Scan not found for organization and project" });
   }
 
@@ -181,6 +181,42 @@ app.get("/v1/projects/:projectId/scans/:scanId/reports/markdown", async (request
     .type("text/markdown; charset=utf-8")
     .header("content-disposition", `attachment; filename="vibeaudit-${scan.id}.md"`)
     .send(createMarkdownReport(scan.report));
+});
+
+app.get("/v1/projects/:projectId/scans/:scanId/reports/json", async (request, reply) => {
+  const organizationId = readOrganizationId(request.headers);
+  const { projectId, scanId } = request.params as { projectId: string; scanId: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
+
+  const scan = readScopedScan({ organizationId, projectId, scanId });
+  if (!scan) {
+    return reply.code(404).send({ error: "Scan not found for organization and project" });
+  }
+
+  return reply
+    .type("application/json; charset=utf-8")
+    .header("content-disposition", `attachment; filename="vibeaudit-${scan.id}.json"`)
+    .send(scan.report);
+});
+
+app.get("/v1/projects/:projectId/scans/:scanId/reports/sarif", async (request, reply) => {
+  const organizationId = readOrganizationId(request.headers);
+  const { projectId, scanId } = request.params as { projectId: string; scanId: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
+
+  const scan = readScopedScan({ organizationId, projectId, scanId });
+  if (!scan) {
+    return reply.code(404).send({ error: "Scan not found for organization and project" });
+  }
+
+  return reply
+    .type("application/sarif+json; charset=utf-8")
+    .header("content-disposition", `attachment; filename="vibeaudit-${scan.id}.sarif"`)
+    .send(createSarifReport(scan.report));
 });
 
 app.get("/v1/audit-log", async (request, reply) => {
@@ -203,4 +239,13 @@ function readBooleanEnv(key: string, fallback: boolean): boolean {
   const value = process.env[key]?.trim().toLowerCase();
   if (!value) return fallback;
   return ["1", "true", "yes", "on"].includes(value);
+}
+
+function readScopedScan(input: { organizationId: string; projectId: string; scanId: string }): StoredScan | undefined {
+  const scan = store.scans.get(input.scanId);
+  if (!scan || scan.organizationId !== input.organizationId || scan.projectId !== input.projectId) {
+    return undefined;
+  }
+
+  return scan;
 }

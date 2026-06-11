@@ -2,6 +2,31 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.3.9] - 2026-06-11
+
+### Added
+
+- Added project-scoped API JSON scan report export at `/v1/projects/:projectId/scans/:scanId/reports/json`.
+- Added project-scoped API SARIF scan report export at `/v1/projects/:projectId/scans/:scanId/reports/sarif`.
+- Added API report export tests for SARIF generation from imported scan data.
+
+### Improved
+
+- Documented all project-scoped scan report export endpoints in the README.
+- Bumped all workspace package versions and the runner version to `0.3.9`.
+
+### Fixed
+
+- No bug fixes in this release.
+
+### QA
+
+- Verified `corepack pnpm typecheck`.
+- Verified `corepack pnpm test`: 6 files and 17 tests passed.
+- Verified `corepack pnpm build`.
+- Verified `corepack pnpm --filter @vibeaudit/runner scan:mock:demo` writes JSON, SARIF, and Markdown artifacts with tool version `0.3.9`.
+- Verified local API smoke: mock scan import returns `200`, JSON report export returns `200` with `application/json`, SARIF report export returns `200` with `application/sarif+json`, both exports include attachment filenames, and the SARIF body contains the expected rule id.
+
 ## [0.3.8] - 2026-06-10
 
 ### Added

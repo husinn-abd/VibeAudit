@@ -56,7 +56,7 @@ describe("core package", () => {
     const findings = normalizeScannerOutput("mock", {
       findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10 }]
     });
-    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.3.8" }, findings });
+    const sarif = toSarif({ tool: { name: "VibeAudit", version: "0.3.9" }, findings });
     expect(sarif.version).toBe("2.1.0");
   });
 
@@ -65,7 +65,7 @@ describe("core package", () => {
       findings: [{ ruleId: "danger", severity: "high", filePath: "src/app.ts", startLine: 10, evidence: "unsafe" }]
     });
     const report = createScanReport({
-      version: "0.3.8",
+      version: "0.3.9",
       target: { type: "local_path", value: "." },
       scannerRuns: [
         {
