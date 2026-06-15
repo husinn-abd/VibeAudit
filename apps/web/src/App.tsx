@@ -1,7 +1,9 @@
 import {
+  Activity,
   Box,
   Boxes,
   Briefcase,
+  CalendarClock,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -9,6 +11,7 @@ import {
   CircleDot,
   Cloud,
   Copy,
+  ClipboardCheck,
   ExternalLink,
   FileDown,
   FileJson,
@@ -20,6 +23,7 @@ import {
   Info,
   KeyRound,
   LayoutGrid,
+  ListChecks,
   LockKeyhole,
   Play,
   Search,
@@ -27,16 +31,25 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
+  ShieldQuestion,
   Sparkles,
   Sun,
   Terminal,
+  TrendingDown,
   X
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { createMarkdownReport } from "@vibeaudit/core/markdown";
+import { createScanInsights, type EvidenceIntegrityCheck, type RemediationQueueItem } from "@vibeaudit/core/insights";
 import type { ScanReport } from "@vibeaudit/core";
-import { findings as demoFindings, policyEvaluation as demoPolicyEvaluation, project, scannerRuns as demoScannerRuns } from "./data";
+import {
+  findings as demoFindings,
+  policyEvaluation as demoPolicyEvaluation,
+  project,
+  riskTrend,
+  scannerRuns as demoScannerRuns
+} from "./data";
 import { webConfig } from "./config";
 
 type Severity = "critical" | "high" | "medium" | "low";
@@ -170,7 +183,7 @@ const demoScanReport: ScanReport = {
   schemaVersion: 1,
   tool: {
     name: "VibeAudit",
-    version: "0.3.9"
+    version: "0.4.0"
   },
   target: {
     type: "local_path",
@@ -204,6 +217,16 @@ export function App() {
   const [detailStatus, setDetailStatus] = useState("New");
   const [assignee, setAssignee] = useState("Unassigned");
   const [exportStatus, setExportStatus] = useState("Report export is ready");
+  const [remediationStatus, setRemediationStatus] = useState("Review queue ready");
+  const [acknowledgedQueueIds, setAcknowledgedQueueIds] = useState<string[]>([]);
+
+  const scanInsights = useMemo(() => createScanInsights(demoScanReport), []);
+  const visibleRemediationQueue = scanInsights.remediationQueue.filter(
+    (item) => !acknowledgedQueueIds.includes(item.findingId)
+  );
+  const latestTrend = riskTrend[riskTrend.length - 1]!;
+  const previousTrend = riskTrend[riskTrend.length - 2]!;
+  const trendDelta = latestTrend.score - previousTrend.score;
 
   const visibleFindings = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -235,6 +258,11 @@ export function App() {
     }
 
     setExportStatus(`${format} export ready`);
+  }
+
+  function acknowledgeRemediation(item: RemediationQueueItem) {
+    setAcknowledgedQueueIds((current) => [...new Set([...current, item.findingId])]);
+    setRemediationStatus(`${item.title} acknowledged for ${item.ownerRole}`);
   }
 
   return (
@@ -384,6 +412,112 @@ export function App() {
                     <em>{scanner.duration}</em>
                   </div>
                 ))}
+              </div>
+            </Panel>
+
+            <Panel
+              action={
+                <button className="text-button" onClick={() => setRemediationStatus("Review packet drafted for auditor handoff")}>
+                  Draft review packet <ExternalLink size={14} />
+                </button>
+              }
+              className="intelligence-panel"
+              title="Risk Intelligence"
+            >
+              <div className="insight-grid">
+                <section className="risk-score-card" aria-label="Risk score">
+                  <div>
+                    <span>Current risk score</span>
+                    <strong>{scanInsights.riskScore}</strong>
+                  </div>
+                  <b className={`risk-level risk-${scanInsights.riskLevel}`}>{capitalize(scanInsights.riskLevel)}</b>
+                  <p>
+                    {scanInsights.blockedFindingCount} policy blockers, {scanInsights.activeFindingCount} active findings,{" "}
+                    {scanInsights.acceptedFindingCount} accepted risk.
+                  </p>
+                  <small className={trendDelta <= 0 ? "trend-good" : "trend-bad"}>
+                    <TrendingDown size={14} />
+                    {trendDelta <= 0 ? `${Math.abs(trendDelta)} points lower than previous scan` : `${trendDelta} points higher than previous scan`}
+                  </small>
+                </section>
+
+                <section className="trend-card" aria-label="Risk trend">
+                  <div className="mini-title">
+                    <Activity size={17} />
+                    <strong>Risk trend</strong>
+                  </div>
+                  <div className="trend-chart">
+                    {riskTrend.map((point) => (
+                      <span key={point.label} style={{ "--bar-height": `${point.score}%` } as CSSProperties}>
+                        <b>{point.score}</b>
+                        <i />
+                        <em>{point.label}</em>
+                      </span>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="coverage-card" aria-label="Scanner coverage">
+                  <div className="mini-title">
+                    <ShieldQuestion size={17} />
+                    <strong>Scanner coverage</strong>
+                  </div>
+                  <strong>{scanInsights.scannerCoverage.percent}%</strong>
+                  <p>
+                    {scanInsights.scannerCoverage.completed.length}/{scanInsights.scannerCoverage.required.length} required scanners completed.
+                  </p>
+                  <small>
+                    Missing: {scanInsights.scannerCoverage.missing.length > 0 ? scanInsights.scannerCoverage.missing.join(", ") : "None"}
+                  </small>
+                </section>
+              </div>
+
+              <div className="remediation-layout">
+                <section className="remediation-card">
+                  <div className="mini-title">
+                    <ListChecks size={17} />
+                    <strong>Remediation queue</strong>
+                    <span>{remediationStatus}</span>
+                  </div>
+                  <div className="remediation-list">
+                    {visibleRemediationQueue.length > 0 ? (
+                      visibleRemediationQueue.map((item) => (
+                        <article key={item.findingId}>
+                          <div>
+                            <SeverityBadge severity={item.severity === "info" ? "low" : item.severity} />
+                            <strong>{item.title}</strong>
+                            <span>{item.location}</span>
+                          </div>
+                          <p>{item.recommendation}</p>
+                          <footer>
+                            <span><CalendarClock size={14} /> Due {item.dueDate}</span>
+                            <span>{item.ownerRole}</span>
+                            <button onClick={() => acknowledgeRemediation(item)}>Acknowledge</button>
+                          </footer>
+                        </article>
+                      ))
+                    ) : (
+                      <div className="empty-queue">
+                        <ClipboardCheck size={22} />
+                        <strong>Queue cleared locally</strong>
+                        <span>All visible remediation items have been acknowledged in this review session.</span>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <section className="integrity-card">
+                  <div className="mini-title">
+                    <ClipboardCheck size={17} />
+                    <strong>Evidence integrity</strong>
+                    <b>{scanInsights.evidenceIntegrity.passed ? "Passed" : "Needs review"}</b>
+                  </div>
+                  <div className="integrity-list">
+                    {scanInsights.evidenceIntegrity.checks.map((check) => (
+                      <IntegrityCheckRow check={check} key={check.id} />
+                    ))}
+                  </div>
+                </section>
               </div>
             </Panel>
 
@@ -625,6 +759,18 @@ function StatusDot({ status }: { status: Status }) {
       <CircleDot size={12} />
       {status}
     </span>
+  );
+}
+
+function IntegrityCheckRow({ check }: { check: EvidenceIntegrityCheck }) {
+  return (
+    <div className={check.passed ? "integrity-row passed" : "integrity-row failed"}>
+      <span>{check.passed ? <Check size={14} /> : <X size={14} />}</span>
+      <div>
+        <strong>{check.label}</strong>
+        <small>{check.detail}</small>
+      </div>
+    </div>
   );
 }
 

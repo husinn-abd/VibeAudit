@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VibeAudit">
+  <rect width="64" height="64" rx="14" fill="#06111b"/>
+  <path d="M32 8 51 15v13c0 13-7.8 23.5-19 28-11.2-4.5-19-15-19-28V15l19-7Z" fill="none" stroke="#56d5c6" stroke-width="4" stroke-linejoin="round"/>
+  <path d="m22 31 7 7 14-16" fill="none" stroke="#56d5c6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

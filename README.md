@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/ci.yml)
 [![Deploy Web Dashboard](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml/badge.svg)](https://github.com/husinn-abd/VibeAudit/actions/workflows/pages.yml)
-[![Version](https://img.shields.io/badge/version-0.3.9-0f8f7f.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-0f8f7f.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f8f7f.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/live-dashboard-101820.svg)](https://husinn-abd.github.io/VibeAudit/)
 
@@ -50,13 +50,13 @@ registers. VibeAudit turns those signals into one reviewable workflow:
 | Area | Status |
 | --- | --- |
 | Public dashboard | Deployed on GitHub Pages |
-| Dashboard UI | Modern command-center interface with filters, selected evidence, scanner flow, ISO, and export state |
+| Dashboard UI | Modern command-center interface with filters, selected evidence, scanner flow, risk intelligence, remediation queue, ISO, and export state |
 | Monorepo foundation | `apps/*`, `packages/*`, docs, CI, Pages workflow |
 | Runner CLI | Mock scans, JSON output, SARIF output, Markdown output, Docker scanner wrappers |
-| Core model | Severity mapping, fingerprints, policy evaluation, reports |
+| Core model | Severity mapping, fingerprints, policy evaluation, scan insights, evidence integrity checks, reports |
 | Secret safety | Redaction, evidence hashing, API token hashing helpers |
 | ISO-lite | A.8.8, A.8.25, A.8.28, A.8.29 support mappings |
-| API | MVP import, projects, findings, risk acceptance, HTML and Markdown report endpoints |
+| API | MVP import, projects, findings, risk acceptance, scan insights, HTML/Markdown/JSON/SARIF report endpoints |
 
 VibeAudit is pre-release. The dashboard currently uses demo data while the API
 and persisted storage are being connected.
@@ -67,9 +67,10 @@ and persisted storage are being connected.
 2. **Normalize** Semgrep, Gitleaks, and Trivy output into one finding model.
 3. **Redact and hash** evidence before it is stored, shown, or exported.
 4. **Evaluate policy** with `securerepo.policy.yml`, including `fail_on` and required scanners.
-5. **Review in dashboard** with severity filters, scanner filters, selected finding evidence, scanner run metadata, and ISO-lite mappings.
-6. **Accept risk or export** HTML, PDF, Markdown, JSON, and SARIF reports from the same scan data.
-7. **Fail CI when needed** using the runner exit code: `0` pass, `1` policy failed, `2` scanner/runtime error, `3` invalid input/config.
+5. **Review risk intelligence** with score trend, scanner coverage, remediation queue, and evidence integrity checks.
+6. **Review findings in dashboard** with severity filters, scanner filters, selected finding evidence, scanner run metadata, and ISO-lite mappings.
+7. **Accept risk or export** HTML, PDF, Markdown, JSON, and SARIF reports from the same scan data.
+8. **Fail CI when needed** using the runner exit code: `0` pass, `1` policy failed, `2` scanner/runtime error, `3` invalid input/config.
 
 ## Quick Access From PowerShell
 
@@ -282,19 +283,25 @@ path.
 
 Scan report exports are available through project-scoped API routes:
 
+- `GET /v1/projects/:projectId/scans/:scanId/insights`
 - `GET /v1/projects/:projectId/scans/:scanId/reports/html`
 - `GET /v1/projects/:projectId/scans/:scanId/reports/markdown`
 - `GET /v1/projects/:projectId/scans/:scanId/reports/json`
 - `GET /v1/projects/:projectId/scans/:scanId/reports/sarif`
+
+The insights endpoint returns policy state, risk score, scanner coverage,
+top ISO controls, remediation queue items, and evidence integrity checks for the
+imported scan.
 
 ## Current Roadmap
 
 1. Connect the dashboard to the API instead of demo data.
 2. Persist imports through Prisma with SQLite for local use.
 3. Add Postgres-ready deployment path.
-4. Add PDF report generation from the same report model.
-5. Add strict local AI assistance for finding explanations.
-6. Add scanner benchmark fixtures for regression testing.
+4. Wire the dashboard risk intelligence panel to imported API scan insights.
+5. Add PDF report generation from the same report model.
+6. Add strict local AI assistance for finding explanations.
+7. Add scanner benchmark fixtures for regression testing.
 
 Deferred enterprise features include SSO, GitHub App, GitLab App, multi-runner
 fleet, signed release pipeline, and full ISMS lifecycle workflows.

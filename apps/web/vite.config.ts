@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@vibeaudit/core/markdown": path.resolve(__dirname, "../../packages/core/src/markdown.ts"),
+        "@vibeaudit/core/insights": path.resolve(__dirname, "../../packages/core/src/insights.ts"),
         "@vibeaudit/core": path.resolve(__dirname, "../../packages/core/src/index.ts"),
         "@vibeaudit/iso": path.resolve(__dirname, "../../packages/iso/src/index.ts"),
         "@vibeaudit/security": path.resolve(__dirname, "../../packages/security/src/index.ts")

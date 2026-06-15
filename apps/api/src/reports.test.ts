@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createEvidenceHash } from "@vibeaudit/security";
 import type { ScanReport } from "@vibeaudit/core";
-import { createSarifReport } from "./validation.js";
+import { createSarifReport, createScanInsights } from "./validation.js";
 
 describe("API report exports", () => {
   it("creates SARIF from imported scan data", () => {
@@ -12,6 +12,20 @@ describe("API report exports", () => {
     expect(sarif.runs).toHaveLength(1);
     expect(JSON.stringify(sarif)).toContain("semgrep.demo-rule");
     expect(JSON.stringify(sarif)).toContain("src/index.ts");
+  });
+
+  it("creates scan insights from imported scan data", () => {
+    const insights = createScanInsights(makeReport());
+
+    expect(insights.policyState).toBe("blocked");
+    expect(insights.riskScore).toBe(12);
+    expect(insights.scannerCoverage.percent).toBe(100);
+    expect(insights.remediationQueue[0]).toMatchObject({
+      findingId: "finding_demo",
+      ownerRole: "Developer",
+      dueInDays: 14
+    });
+    expect(insights.evidenceIntegrity.passed).toBe(true);
   });
 });
 
@@ -41,12 +55,12 @@ function makeReport(): ScanReport {
 
   return {
     schemaVersion: 1,
-    tool: { name: "VibeAudit", version: "0.3.9" },
+    tool: { name: "VibeAudit", version: "0.4.0" },
     target: { type: "local_path", value: "." },
     scannerRuns: [
       {
         scanner: "semgrep",
-        version: "0.3.9",
+        version: "0.4.0",
         command: ["semgrep", "--json"],
         startedAt: "2026-06-11T00:00:00.000Z",
         completedAt: "2026-06-11T00:00:01.000Z",

@@ -135,6 +135,14 @@ export const policyEvaluation: PolicyEvaluation = {
 
 export const isoCoverage = buildIsoCoverage(findings);
 
+export const riskTrend = [
+  { label: "Jun 01", score: 82, blocked: 24 },
+  { label: "Jun 05", score: 76, blocked: 19 },
+  { label: "Jun 09", score: 68, blocked: 14 },
+  { label: "Jun 12", score: 54, blocked: 9 },
+  { label: "Today", score: 41, blocked: 2 }
+];
+
 export const project = {
   name: "VibeAudit Demo",
   repository: "github.com/husinn-abd/VibeAudit",

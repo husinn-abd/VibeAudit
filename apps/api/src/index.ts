@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { loadVibeAuditEnv } from "@vibeaudit/core/env";
 import Fastify from "fastify";
-import { createHtmlReport, createMarkdownReport, createSarifReport, scanReportSchema } from "./validation.js";
+import { createHtmlReport, createMarkdownReport, createSarifReport, createScanInsights, scanReportSchema } from "./validation.js";
 import { MemoryStore, type StoredScan } from "./store.js";
 import { missingOrganizationError, readOrganizationId } from "./scoping.js";
 
@@ -98,6 +98,21 @@ app.get("/v1/projects/:projectId/scans", async (request, reply) => {
   } catch (error) {
     return reply.code(404).send({ error: error instanceof Error ? error.message : "Project not found" });
   }
+});
+
+app.get("/v1/projects/:projectId/scans/:scanId/insights", async (request, reply) => {
+  const organizationId = readOrganizationId(request.headers);
+  const { projectId, scanId } = request.params as { projectId: string; scanId: string };
+  if (!organizationId) {
+    return reply.code(400).send(missingOrganizationError);
+  }
+
+  const scan = readScopedScan({ organizationId, projectId, scanId });
+  if (!scan) {
+    return reply.code(404).send({ error: "Scan not found for organization and project" });
+  }
+
+  return createScanInsights(scan.report);
 });
 
 app.get("/v1/projects/:projectId/findings", async (request, reply) => {

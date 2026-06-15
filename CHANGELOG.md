@@ -2,6 +2,31 @@
 
 All notable changes to VibeAudit are documented here.
 
+## [0.4.0] - 2026-06-15
+
+### Added
+
+- Added shared scan insights in `@vibeaudit/core`, including risk score, scanner coverage, top ISO controls, remediation queue, and evidence integrity summary.
+- Added project-scoped API scan insights endpoint at `/v1/projects/:projectId/scans/:scanId/insights`.
+- Added dashboard Risk Intelligence panel with score trend, scanner coverage, actionable remediation queue, and evidence integrity checklist.
+
+### Improved
+
+- Documented scan insights in the README product flow, API route list, and roadmap.
+- Bumped all workspace package versions and the runner version to `0.4.0`.
+
+### Fixed
+
+- No bug fixes in this release.
+
+### QA
+
+- Verified `powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1`: install, typecheck, 21 tests, production build, and mock scan all passed with tool version `0.4.0`.
+- Verified local API smoke: mock scan import returns `200`, scan insights returns `200`, risk score is `41`, scanner coverage is `100%`, remediation queue has 3 items, and evidence integrity passes.
+- Verified dashboard render locally in Browser: VibeAudit dashboard, Risk Intelligence, Remediation queue, and Evidence integrity all render with no console errors.
+- Verified dashboard remediation interaction locally: clicking `Acknowledge` reduced visible queue actions from 3 to 2 and updated the review status.
+- Verified Edge/Playwright desktop and mobile captures: desktop screenshot updated in `docs/assets/vibeaudit-dashboard.png`, mobile viewport has no horizontal overflow, and both captures reported no console warnings or errors.
+
 ## [0.3.9] - 2026-06-11
 
 ### Added
