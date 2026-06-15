@@ -16,7 +16,7 @@
     "prepare:db": "corepack pnpm --filter @vibeaudit/api prisma:generate"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "^25.9.1",
     "playwright": "1.49.1",
     "prettier": "^3.4.2",
     "turbo": "^2.3.3",
