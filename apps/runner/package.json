@@ -18,7 +18,7 @@
     "@vibeaudit/core": "workspace:*",
     "@vibeaudit/iso": "workspace:*",
     "@vibeaudit/security": "workspace:*",
-    "commander": "^12.1.0",
+    "commander": "^15.0.0",
     "yaml": "^2.6.1"
   },
   "devDependencies": {
